@@ -2,7 +2,7 @@
 
 abstract class Crawler {
 
-	/**
+    /**
      * The crawler's urls.
      *
      * @var array
@@ -23,26 +23,54 @@ abstract class Crawler {
      */
     protected $matcher;
 
-	protected $message = '';
+    /**
+     * The number of matches to take
+     *
+     * @var int
+     */
+    protected $take;
 
-	/**
+    /**
+     * Return the last match
+     *
+     * @var bool
+     */
+    protected $last = false;
+
+    /**
+     * Return the first match
+     *
+     * @var bool
+     */
+    protected $first = false;
+
+    protected $message = '';
+
+    /**
+     * The matches to return
+     *
+     * @var array
+     */
+    protected $results = array();
+
+    /**
      * Create a new Crawler instance.
      *
      * @param  array  $attributes
      * @return void
      */
-	public function __construct(array $urls = array(), $regex = '', array $matchData = array(), $filter = null)
-	{
-		$this->setUrls($urls);
-		$this->setRegex($regex);
-		$this->setMatcher($matchData, $filter);
-	}
+    public function __construct(array $urls = array(), $regex = '', array $matchData = array(), $filter = null)
+    {
+        $this->setUrls($urls);
+        $this->setRegex($regex);
+        $this->setMatcher($matchData, $filter);
+    }
 
-	/**
+    /**
      * Set the urls to crawl
      *
      * @param  array  $urls
-     * @return \LavaCrawl\Crawler
+     * @return \Laurentvw\LavaCrawler\Crawler
      */
     public function setUrls(array $urls)
     {
@@ -58,11 +86,11 @@ abstract class Crawler {
      * Set the regex to match
      *
      * @param  string  $regex
-     * @return \LavaCrawl\Crawler
+     * @return \Laurentvw\LavaCrawler\Crawler
      */
     public function setRegex($regex)
     {
-    	$this->regex = $regex;
+        $this->regex = $regex;
 
         return $this;
     }
@@ -71,57 +99,116 @@ abstract class Crawler {
      * Set the regex to match
      *
      * @param  string  $regex
-     * @return \LavaCrawl\Crawler
+     * @return \Laurentvw\LavaCrawler\Crawler
      */
     public function setMatcher($matchData, $filter)
     {
-    	$this->matcher = new Matcher($matchData, $filter); // DepInj???!
+        $this->matcher = new Matcher($matchData, $filter); // DepInj???!
 
         return $this;
     }
 
-	public function getMessage()
-	{
-		return $this->message;
-	}
+    public function getMessage()
+    {
+        return $this->message;
+    }
 
-	public function getData()
-	{
-		$matches = array();
-		$i = 0;
+    /**
+     * Take n-number of matches
+     *
+     * @return \Laurentvw\LavaCrawler\Crawler
+     */
+    public function take($n)
+    {
+        $this->take = $n;
 
-		foreach ($this->urls as $url)
-		{
-			$page = new Page($url);
-			$html = $page->getHTML();
+        return $this;
+    }
 
-			if (preg_match_all('/'.$this->regex.'/ms', $html, $matchLines, PREG_SET_ORDER))
-			{
-				foreach ($matchLines as $matchLine)
-				{
-					if ($matches[$i] = $this->matcher->fetch($matchLine))
-					{
-						$i++;
-					}
-					else
-					{
-						// Remove this match from the data set
-						unset($matches[$i]);
-						$this->message .= 'On ' . $url . "\r\n";
-						$this->message .= $this->matcher->getErrors();
-					}
-				}
-			}
-			else
-			{
-				$this->message .= 'HTML is broken on ' . $url . '!' . "\r\n\r\n";
-			}
-		}
+    /**
+     * Get the first match
+     *
+     * @return array
+     */
+    public function first()
+    {
+        $this->first = true;
 
-		return $matches;
-	}
+        $this->crawl();
 
-	/**
+        return current($this->results);
+    }
+
+    /**
+     * Get the last match
+     *
+     * @return array
+     */
+    public function last()
+    {
+        $this->last = true;
+
+        $this->crawl();
+
+        return end($this->results);
+    }
+
+    /**
+     * Get the matches
+     *
+     * @return array
+     */
+    public function get()
+    {
+        $this->crawl();
+
+        return $this->results;
+    }
+
+    /**
+     * The actual crawling
+     *
+     * @return void
+     */
+    public function crawl()
+    {
+        $i = 0;
+
+        foreach ($this->urls as $url)
+        {
+            $page = new Page($url);
+            $html = $page->getHTML();
+
+            if (preg_match_all('/'.$this->regex.'/ms', $html, $matchLines, PREG_SET_ORDER))
+            {
+                foreach ($matchLines as $matchLine)
+                {
+                    if ($this->results[$i] = $this->matcher->fetch($matchLine))
+                    {
+                        if ($this->first || ($this->take && $this->take >= $i+1))
+                        {
+                            break;
+                        }
+
+                        $i++;
+                    }
+                    else
+                    {
+                        // Remove this match from the data set
+                        unset($this->results[$i]);
+                        $this->message .= 'On ' . $url . "\r\n";
+                        $this->message .= $this->matcher->getErrors();
+                    }
+                }
+            }
+            else
+            {
+                $this->message .= 'HTML is broken on ' . $url . '!' . "\r\n\r\n";
+            }
+        }
+    }
+
+    /**
      * Handle dynamic static method calls into the method.
      *
      * @param  string  $method
