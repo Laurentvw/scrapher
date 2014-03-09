@@ -1,0 +1,23 @@
+{
+    "name": "laurentvw/lavacrawler",
+    "description": "",
+    "homepage": "http://github.com/Laurentvw/LavaCrawler",
+    "require": {
+    	"php": ">=5.4.0",
+        "illuminate/support": "~4.1"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Laurent Van Winckel",
+            "email": "laurentvw@gmail.com",
+            "homepage": "http://www.laurentvw.com"
+        }
+    ],
+    "autoload": {
+        "psr-0": {
+            "Laurentvw\\LavaCrawler": "src/"
+        }
+    },
+    "minimum-stability": "dev"
+}
