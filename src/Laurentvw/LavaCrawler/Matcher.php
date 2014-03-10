@@ -5,10 +5,28 @@ use \Illuminate\Support\Facades\Validator;
 
 class Matcher {
 
+	/**
+	 * @var array
+	 */
 	protected $matches = array();
+
+	/**
+	 * @var string
+	 */
 	protected $errors = '';
+
+	/**
+	 * @var \Closure
+	 */
 	protected $filter;
 
+	/**
+     * Create a new Matcher instance.
+     *
+     * @param array $matches
+     * @param \Closure $filter
+     * @return void
+     */
 	function __construct(array $matches, Closure $filter)
 	{
 		$this->matches = $matches;
@@ -26,11 +44,23 @@ class Matcher {
 
 		$dataRules = array();
 
-		// Get the data, manipulate the data & get the validation rules
 		foreach ($this->matches as $match)
 		{
-			$result[$match['name']] = $this->applyTo($match['apply'], $data[$match['id']]);
-			$dataRules[$match['name']] = $match['rules'];
+			// Get the match value, optionally apply a function to it
+			if (isset($match['apply']))
+			{
+				$result[$match['name']] = $this->applyTo($match['apply'], $data[$match['id']]);
+			}
+			else
+			{
+				$result[$match['name']] = $data[$match['id']];
+			}
+
+			// Get the validation rules for this match
+			if (isset($match['rules']))
+			{
+				$dataRules[$match['name']] = $match['rules'];
+			}
 		}
 
 		// Validate the data
