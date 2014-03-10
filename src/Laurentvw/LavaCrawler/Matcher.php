@@ -47,7 +47,14 @@ class Matcher {
 		return $this->errors;
 	}
 
-	public function fetch($data)
+	/**
+     * Fetch the values from a match
+     *
+     * @param array $data
+     * @param string $url
+     * @return array
+     */
+	public function fetch(array $data, $url = '')
 	{
 		$result = array();
 
@@ -58,7 +65,7 @@ class Matcher {
 			// Get the match value, optionally apply a function to it
 			if (isset($match['apply']))
 			{
-				$result[$match['name']] = $this->applyTo($match['apply'], $data[$match['id']]);
+				$result[$match['name']] = $match['apply']($data[$match['id']], $url);
 			}
 			else
 			{
@@ -96,18 +103,6 @@ class Matcher {
 		}
 
 		return $result;
-
-	}
-
-	public function applyTo($apply, $value)
-	{
-		if (empty($apply)) return $value;
-
-		array_walk($apply[1], function(&$value, $index, $match) {
-			$value = str_replace(':M', $match, $value);
-		}, $value);
-
-		return call_user_func_array($apply[0], $apply[1]);
 	}
 
 }

@@ -183,7 +183,7 @@ abstract class Crawler {
             {
                 foreach ($matchLines as $matchLine)
                 {
-                    if ($this->results[$i] = $this->matcher->fetch($matchLine))
+                    if ($this->results[$i] = $this->matcher->fetch($matchLine, $url))
                     {
                         if ($this->first || ($this->take && $this->take >= $i+1))
                         {
@@ -196,8 +196,12 @@ abstract class Crawler {
                     {
                         // Remove this match from the data set
                         unset($this->results[$i]);
-                        $this->message .= 'On ' . $url . "\r\n";
-                        $this->message .= $this->matcher->getErrors();
+                        
+                        if ($this->matcher->getErrors())
+                        {
+                            $this->message .= 'On ' . $url . "\r\n";
+                            $this->message .= $this->matcher->getErrors();
+                        }
                     }
                 }
             }
