@@ -1,7 +1,8 @@
 <?php namespace Laurentvw\LavaCrawler;
 
 use \Closure;
-use \Illuminate\Support\Facades\Validator;
+use \Illuminate\Validation\Factory as ValidationFactory;
+use \Symfony\Component\Translation\Translator;
 
 class Matcher {
 
@@ -21,6 +22,11 @@ class Matcher {
 	protected $filter;
 
 	/**
+	 * @var \Illuminate\Validation\Factory
+	 */
+	protected $validationFactory;
+
+	/**
      * Create a new Matcher instance.
      *
      * @param array $matches
@@ -31,6 +37,9 @@ class Matcher {
 	{
 		$this->matches = $matches;
 		$this->filter = $filter;
+
+		$translator = new Translator('en');
+		$this->validationFactory = new ValidationFactory($translator);
 	}
 
 	public function getErrors()
@@ -64,7 +73,7 @@ class Matcher {
 		}
 
 		// Validate the data
-		$validator = Validator::make($result, $dataRules);
+		$validator = $this->validationFactory->make($result, $dataRules);
 		if ($validator->fails())
 		{
 			$this->errors .= 'Validation failed for: ' . "\r\n";
