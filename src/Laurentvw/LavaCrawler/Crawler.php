@@ -31,18 +31,11 @@ abstract class Crawler {
     protected $take;
 
     /**
-     * Return the last match
+     * The order of the matches
      *
-     * @var bool
+     * @var array
      */
-    protected $last = false;
-
-    /**
-     * Return the first match
-     *
-     * @var bool
-     */
-    protected $first = false;
+    protected $orderBy;
 
     protected $message = '';
 
@@ -116,11 +109,29 @@ abstract class Crawler {
     /**
      * Take n-number of matches
      *
+     * @param int $n
      * @return \Laurentvw\LavaCrawler\Crawler
      */
     public function take($n)
     {
         $this->take = $n;
+
+        return $this;
+    }
+
+    /**
+     * Order the matches
+     *
+     * @param string $name
+     * @param string $order
+     * @param string $projection
+     * @return \Laurentvw\LavaCrawler\Crawler
+     */
+    public function orderBy($name, $order = 'asc', $projection = null)
+    {
+        $order = strtolower($order) == 'desc' ? SORT_DESC : SORT_ASC;
+
+        $this->orderBy[] = array($name, $order, $projection);
 
         return $this;
     }
@@ -132,8 +143,6 @@ abstract class Crawler {
      */
     public function first()
     {
-        $this->first = true;
-
         $this->crawl();
 
         return current($this->results);
@@ -146,8 +155,6 @@ abstract class Crawler {
      */
     public function last()
     {
-        $this->last = true;
-
         $this->crawl();
 
         return end($this->results);
@@ -185,18 +192,13 @@ abstract class Crawler {
                 {
                     if ($this->results[$i] = $this->matcher->fetch($matchLine, $url))
                     {
-                        if ($this->first || ($this->take && $this->take >= $i+1))
-                        {
-                            break;
-                        }
-
                         $i++;
                     }
                     else
                     {
                         // Remove this match from the data set
                         unset($this->results[$i]);
-                        
+
                         if ($this->matcher->getErrors())
                         {
                             $this->message .= 'On ' . $url . "\r\n";
@@ -210,6 +212,77 @@ abstract class Crawler {
                 $this->message .= 'HTML is broken on ' . $url . '!' . "\r\n\r\n";
             }
         }
+
+        if ($this->results)
+        {
+            // Order by
+            if ($this->orderBy)
+            {
+                usort($this->results, call_user_func_array('self::make_comparer', $this->orderBy));
+            }
+
+            // Take
+            if ($this->take)
+            {
+                $this->results = array_slice($this->results, 0, $this->take);
+            }
+        }
+    }
+
+    /**
+     * This is a callable component of usort.
+     *
+     * For simple ascending sorts (multiple column included):
+     * usort($row, make_comparer('column_name'[, 'other_column_name']);
+     *
+     * For setting a descending sort
+     * usort($rows, make_comparer(array('column_name', SORT_DESC)));
+     *
+     * To include a function result on a column
+     * usort($rows, make_comparer(array('column_name', SORT_ASC, 'function_name')));
+     *
+     * From stackoverflow.com : user - jon
+     * http://stackoverflow.com/questions/96759/how-do-i-sort-a-multidimensional-array-in-php
+     * http://stackoverflow.com/users/50079/jon
+     * @return type
+     */
+    public static function make_comparer()
+    {
+        // Normalize criteria up front so that the comparer finds everything tidy
+        $criteria = func_get_args();
+        foreach ($criteria as $index => $criterion) {
+            $criteria[$index] = is_array($criterion)
+                ? array_pad($criterion, 3, null)
+                : array($criterion, SORT_ASC, null);
+        }
+
+        return function($first, $second) use (&$criteria) {
+            foreach ($criteria as $criterion) {
+                // How will we compare this round?
+                list($column, $sortOrder, $projection) = $criterion;
+                $sortOrder = $sortOrder === SORT_DESC ? -1 : 1;
+
+                // If a projection was defined project the values now
+                if ($projection) {
+                    $lhs = call_user_func($projection, $first[$column]);
+                    $rhs = call_user_func($projection, $second[$column]);
+                }
+                else {
+                    $lhs = $first[$column];
+                    $rhs = $second[$column];
+                }
+
+                // Do the actual comparison; do not return if equal
+                if ($lhs < $rhs) {
+                    return -1 * $sortOrder;
+                }
+                else if ($lhs > $rhs) {
+                    return 1 * $sortOrder;
+                }
+            }
+
+            return 0; // tiebreakers exhausted, so $first == $second
+        };
     }
 
     /**
