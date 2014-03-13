@@ -24,6 +24,13 @@ abstract class Crawler {
     protected $matcher;
 
     /**
+     * The crawler's interval b/w pages.
+     *
+     * @var int
+     */
+    protected $interval;
+
+    /**
      * The number of matches to take
      *
      * @var int
@@ -49,14 +56,19 @@ abstract class Crawler {
     /**
      * Create a new Crawler instance.
      *
-     * @param  array  $attributes
+     * @param array $urls
+     * @param string $regex
+     * @param array $matchData
+     * @param Closure $filter
+     * @param int $interval
      * @return void
      */
-    public function __construct(array $urls = array(), $regex = '', array $matchData = array(), $filter = null)
+    public function __construct(array $urls = array(), $regex = '', array $matchData = array(), $filter = null, $interval = 0)
     {
         $this->setUrls($urls);
         $this->setRegex($regex);
         $this->setMatcher($matchData, $filter);
+        $this->setInterval($interval);
     }
 
     /**
@@ -99,6 +111,29 @@ abstract class Crawler {
         $this->matcher = new Matcher($matchData, $filter); // DepInj???!
 
         return $this;
+    }
+
+    /**
+     * Set the interval in seconds between page crawls
+     *
+     * @param  int  $interval
+     * @return \Laurentvw\LavaCrawler\Crawler
+     */
+    public function setInterval($interval)
+    {
+        $this->interval = $interval;
+
+        return $this;
+    }
+
+    public function addMessage($msg, $newLines = 1)
+    {
+        $this->message .= $msg;
+
+        for ($i = 0; $i < $newLines; $i++)
+        {
+            $this->message .= "\r\n";
+        }
     }
 
     public function getMessage()
@@ -183,6 +218,8 @@ abstract class Crawler {
 
         foreach ($this->urls as $url)
         {
+            $this->addMessage('Crawling ' . $url);
+
             $page = new Page($url);
             $html = $page->getHTML();
 
@@ -201,16 +238,18 @@ abstract class Crawler {
 
                         if ($this->matcher->getErrors())
                         {
-                            $this->message .= 'On ' . $url . "\r\n";
-                            $this->message .= $this->matcher->getErrors();
+                            $this->addMessage('On ' . $url);
+                            $this->addMessage($this->matcher->getErrors());
                         }
                     }
                 }
             }
             else
             {
-                $this->message .= 'HTML is broken on ' . $url . '!' . "\r\n\r\n";
+                $this->addMessage('HTML is broken on ' . $url);
             }
+
+            $this->afterCrawl();
         }
 
         if ($this->results)
@@ -227,6 +266,14 @@ abstract class Crawler {
                 $this->results = array_slice($this->results, 0, $this->take);
             }
         }
+    }
+
+    protected function afterCrawl()
+    {
+        echo $this->getMessage();
+        flush();
+        sleep($this->interval);
+        $this->message = '';
     }
 
     /**
