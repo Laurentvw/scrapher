@@ -1,6 +1,6 @@
 <?php namespace Laurentvw\LavaCrawler;
 
-abstract class Crawler {
+class Crawler {
 
     /**
      * The crawler's urls.
@@ -28,7 +28,7 @@ abstract class Crawler {
      *
      * @var int
      */
-    protected $interval;
+    protected $interval = 0;
 
     /**
      * The number of matches to take
@@ -67,8 +67,12 @@ abstract class Crawler {
     {
         $this->setUrls($urls);
         $this->setRegex($regex);
-        $this->setMatcher($matchData, $filter);
         $this->setInterval($interval);
+
+        $this->matcher = new Matcher();
+
+        $this->setMatches($matchData);
+        $this->setFilter($filter);
     }
 
     /**
@@ -101,19 +105,6 @@ abstract class Crawler {
     }
 
     /**
-     * Set the regex to match
-     *
-     * @param  string  $regex
-     * @return \Laurentvw\LavaCrawler\Crawler
-     */
-    public function setMatcher($matchData, $filter)
-    {
-        $this->matcher = new Matcher($matchData, $filter); // DepInj???!
-
-        return $this;
-    }
-
-    /**
      * Set the interval in seconds between page crawls
      *
      * @param  int  $interval
@@ -122,6 +113,32 @@ abstract class Crawler {
     public function setInterval($interval)
     {
         $this->interval = $interval;
+
+        return $this;
+    }
+
+    /**
+     * Set the matches
+     *
+     * @param  array  $matches
+     * @return \Laurentvw\LavaCrawler\Crawler
+     */
+    public function setMatches(array $matches)
+    {
+        $this->matcher->setMatches($matches);
+
+        return $this;
+    }
+
+    /**
+     * Set the filter
+     *
+     * @param  \Closure  $filter
+     * @return \Laurentvw\LavaCrawler\Crawler
+     */
+    public function setFilter($filter)
+    {
+        $this->matcher->setFilter($filter);
 
         return $this;
     }
@@ -246,7 +263,7 @@ abstract class Crawler {
             }
             else
             {
-                $this->addMessage('HTML is broken on ' . $url);
+                $this->addMessage('HTML/Regex is broken on ' . $url);
             }
 
             $this->afterCrawl();

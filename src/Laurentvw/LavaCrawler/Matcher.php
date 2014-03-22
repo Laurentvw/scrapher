@@ -19,7 +19,7 @@ class Matcher {
 	/**
 	 * @var \Closure
 	 */
-	protected $filter;
+	protected $filter = null;
 
 	/**
 	 * @var \Illuminate\Validation\Factory
@@ -33,14 +33,40 @@ class Matcher {
      * @param \Closure $filter
      * @return void
      */
-	function __construct(array $matches, Closure $filter)
+	function __construct($matches = array(), $filter = null)
 	{
-		$this->matches = $matches;
-		$this->filter = $filter;
+		$this->setMatches($matches);
+		$this->setFilter($filter);
 
 		$translator = new Translator('en');
 		$this->validationFactory = new ValidationFactory($translator);
 	}
+
+	/**
+     * Set the matches
+     *
+     * @param array $matches
+     * @return \Laurentvw\LavaCrawler\Matcher
+     */
+    public function setMatches(array $matches)
+    {
+        $this->matches = $matches;
+
+        return $this;
+    }
+
+    /**
+     * Set the filter to be applied to the matches
+     *
+     * @param \Closure $filter
+     * @return \Laurentvw\LavaCrawler\Matcher
+     */
+    public function setFilter($filter = null)
+    {
+        $this->filter = is_callable($filter) ? $filter : null;
+
+        return $this;
+    }
 
 	public function getErrors()
 	{
