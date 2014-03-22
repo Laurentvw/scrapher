@@ -1,6 +1,8 @@
 {
     "name": "laurentvw/lavacrawler",
-    "description": "",
+    "type": "library",
+    "description": "A PHP library to easily scrape data from web pages",
+    "keywords": ["crawler", "scraper", "crawling", "scraping"],
     "homepage": "http://github.com/Laurentvw/LavaCrawler",
     "require": {
     	"php": ">=5.4.0",
