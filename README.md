@@ -63,7 +63,7 @@ This returns a list of arrays based on the matches that were set.
     }
 
 
-### Retrieving & sorting
+### Retrieving
 
 **Retrieving**
 ```php
@@ -89,7 +89,7 @@ $result = $crawler->skip(1)->get();
 $result = $crawler->skip(1)->take(5)->get();
 ```
 
-**Sorting**
+### Sorting
 ```php
 // Order by title
 $result = $crawler->orderBy('title')->get();
@@ -120,7 +120,7 @@ $crawler->setFilter(function($matches)
 });
 ```
 
-### Mutate matched values
+### Mutating
 
 In order to handle inconsistencies or formatting issues, you can alter the matched values to a more desirable value. Altering happens before filtering and sorting the result set. You can do so by using the `apply` index in the matches array with a closure that takes 2 arguments: the matched value and the url of the page.
 
@@ -136,7 +136,7 @@ $crawler->setMatches(array(
                 return $url . trim($match, '/');
             }
             return $match;
-        }
+        },
     ),
     array(
         'name' => 'title',
@@ -144,11 +144,35 @@ $crawler->setMatches(array(
         // Remove all html tags inside the link title
         'apply' => function($m) {
             return strip_tags($m);
-        }
+        },
     ),
     ...
 ));
 ```
+
+### Validation
+
+You may validate the matched data to insure that the result set always contains the desired result. Validation happens after optionally mutating the data set with `apply`. To add the validation rules that should be applied to the data, use the `rules` index in the matches array. Matches that fail the validation will be removed from the result set.
+
+```php
+$crawler->setMatches(array(
+    array(
+        'name' => 'url',
+        'id' => 1,
+        // Make sure it is a valid url
+        'rules' => 'url',
+    ),
+    array(
+        'name' => 'title',
+        'id' => 3,
+        // Example usage of multiple validation rules, seperated by a |.
+        'rules' => 'min:1|max:50',
+    ),
+    ...
+));
+```
+
+* See [Laravel validation](http://laravel.com/docs/validation#available-validation-rules) for the available validation rules.
 
 About
 -----
