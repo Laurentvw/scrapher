@@ -111,6 +111,36 @@ $crawler->setFilter(function($matches)
 });
 ```
 
+### Mutate matched values
+
+In order to handle inconsistencies or formatting issues, you can alter the matched values to a more desirable value. Altering happens before filtering and sorting the result set. You can do so by using the `apply` index in the matches array with a closure that takes 2 arguments: the matched value and the url of the page.
+
+```php
+$crawler->setMatches(array(
+    array(
+        'name' => 'url',
+        'id' => 1,
+        // Add domain to URL if it's not present already
+        'apply' => function($match, $url)
+        {
+            if (!stristr($match, 'http')) {
+                return $url . trim($match, '/');
+            }
+            return $match;
+        }
+    ),
+    array(
+        'name' => 'title',
+        'id' => 3,
+        // Remove all html tags inside the link title
+        'apply' => function($m) {
+            return strip_tags($m);
+        }
+    ),
+    ...
+));
+```
+
 About
 -----
 ### Author
