@@ -51,7 +51,19 @@ class Crawler {
      */
     protected $orderBy;
 
-    protected $message = '';
+    /**
+     * A log
+     *
+     * @var string
+     */
+    protected $messages = '';
+
+    /**
+     * Verbose output or not
+     *
+     * @var bool
+     */
+    protected $verbose = false;
 
     /**
      * The matches to return
@@ -144,19 +156,32 @@ class Crawler {
         return $this;
     }
 
+    /**
+     * Set message output or not
+     *
+     * @param  bool  $verbose
+     * @return \Laurentvw\LavaCrawler\Crawler
+     */
+    public function setVerbose($verbose)
+    {
+        $this->verbose = $verbose;
+
+        return $this;
+    }
+
     public function addMessage($msg, $newLines = 1)
     {
-        $this->message .= $msg;
+        $this->messages .= $msg;
 
         for ($i = 0; $i < $newLines; $i++)
         {
-            $this->message .= "\r\n";
+            $this->messages .= "\r\n";
         }
     }
 
-    public function getMessage()
+    public function getMessages()
     {
-        return $this->message;
+        return $this->messages;
     }
 
     /**
@@ -301,10 +326,14 @@ class Crawler {
 
     protected function afterCrawl()
     {
-        echo $this->getMessage();
-        flush();
-        sleep($this->interval);
-        $this->message = '';
+        if ($this->verbose)
+        {
+            echo $this->getMessages();
+            flush();
+            $this->messages = '';
+        }
+
+        if ($this->interval > 0) sleep($this->interval);
     }
 
     /**

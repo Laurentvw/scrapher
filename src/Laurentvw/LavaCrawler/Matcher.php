@@ -83,7 +83,7 @@ class Matcher {
     public function fetch(array $data, $url = '')
     {
         $result = array();
-
+        $this->errors = '';
         $dataRules = array();
 
         foreach ($this->matches as $match)
