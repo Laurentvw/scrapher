@@ -63,23 +63,17 @@ class Crawler {
     /**
      * Create a new Crawler instance.
      *
-     * @param array $urls
-     * @param string $regex
-     * @param array $matchData
-     * @param Closure $filter
-     * @param int $interval
+     * @param array $config
      * @return void
      */
-    public function __construct(array $urls = array(), $regex = '', array $matchData = array(), $filter = null, $interval = 0)
+    public function __construct(array $config = array())
     {
-        $this->setUrls($urls);
-        $this->setRegex($regex);
-        $this->setInterval($interval);
-
         $this->matcher = new Matcher();
 
-        $this->setMatches($matchData);
-        $this->setFilter($filter);
+        foreach ($config as $item => $value)
+        {
+            $this->{'set'.ucfirst($item)}($value);
+        }
     }
 
     /**
