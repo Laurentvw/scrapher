@@ -35,7 +35,14 @@ class Crawler {
      *
      * @var int
      */
-    protected $take;
+    protected $take = null;
+
+    /**
+     * The number of matches to skip
+     *
+     * @var int
+     */
+    protected $skip = 0;
 
     /**
      * The order of the matches
@@ -172,6 +179,19 @@ class Crawler {
     }
 
     /**
+     * Skip n-number of matches
+     *
+     * @param int $n
+     * @return \Laurentvw\LavaCrawler\Crawler
+     */
+    public function skip($n)
+    {
+        $this->skip = $n;
+
+        return $this;
+    }
+
+    /**
      * Order the matches
      *
      * @param string $name
@@ -277,10 +297,10 @@ class Crawler {
                 usort($this->results, call_user_func_array('self::make_comparer', $this->orderBy));
             }
 
-            // Take
-            if ($this->take)
+            // Skip & Take
+            if ($this->skip > 0 || $this->take)
             {
-                $this->results = array_slice($this->results, 0, $this->take);
+                $this->results = array_slice($this->results, $this->skip, $this->take);
             }
         }
     }

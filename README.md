@@ -75,9 +75,18 @@ $result = $crawler->first();
 
 // Return the last match
 $result = $crawler->last();
+```
 
-// Return the first N matches
+**Offset & limit**
+```php
+// Take the first N matches
 $result = $crawler->take(5)->get();
+
+// Skip the first N matches
+$result = $crawler->skip(1)->get();
+
+// Take 5 matches starting from the second one.
+$result = $crawler->skip(1)->take(5)->get();
 ```
 
 **Sorting**
