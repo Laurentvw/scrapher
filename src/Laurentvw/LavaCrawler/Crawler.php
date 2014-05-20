@@ -89,6 +89,19 @@ class Crawler {
     }
 
     /**
+     * Set an url to crawl
+     *
+     * @param  string  $url
+     * @return \Laurentvw\LavaCrawler\Crawler
+     */
+    public function setUrl($url)
+    {
+        $this->urls[] = $url;
+
+        return $this;
+    }
+
+    /**
      * Set the urls to crawl
      *
      * @param  array  $urls
