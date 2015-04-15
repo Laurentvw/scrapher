@@ -11,7 +11,7 @@ Add the package to your `composer.json` and run `composer update`.
 
     {
         "require": {
-            "laurentvw/lavacrawler": "*"
+            "laurentvw/lavacrawler": "1.0.1"
         }
     }
 
