@@ -1,5 +1,7 @@
 <?php namespace Laurentvw\LavaCrawler;
 
+use Laurentvw\LavaCrawler\Selectors\RegexSelector;
+
 class Crawler {
 
     /**
@@ -10,11 +12,11 @@ class Crawler {
     protected $urls = array();
 
     /**
-     * The regular expression used for crawling
+     * The expression of the selector
      *
-     * @var string
+     * @var mixed
      */
-    protected $regex;
+    protected $expression;
 
     /**
      * The crawler's matcher.
@@ -52,13 +54,6 @@ class Crawler {
     protected $orderBy;
 
     /**
-     * A log
-     *
-     * @var string
-     */
-    protected $messages = '';
-
-    /**
      * Verbose output or not
      *
      * @var bool
@@ -76,11 +71,10 @@ class Crawler {
      * Create a new Crawler instance.
      *
      * @param array $config
-     * @return void
      */
     public function __construct(array $config = array())
     {
-        $this->matcher = new Matcher();
+        $this->matcher = new Matcher(new RegexSelector());
 
         foreach ($config as $item => $value)
         {
@@ -92,7 +86,7 @@ class Crawler {
      * Set an url to crawl
      *
      * @param  string  $url
-     * @return \Laurentvw\LavaCrawler\Crawler
+     * @return Crawler
      */
     public function setUrl($url)
     {
@@ -105,7 +99,7 @@ class Crawler {
      * Set the urls to crawl
      *
      * @param  array  $urls
-     * @return \Laurentvw\LavaCrawler\Crawler
+     * @return Crawler
      */
     public function setUrls(array $urls)
     {
@@ -118,14 +112,14 @@ class Crawler {
     }
 
     /**
-     * Set the regex to match
+     * Set the expression to match
      *
-     * @param  string  $regex
-     * @return \Laurentvw\LavaCrawler\Crawler
+     * @param  string  $expression
+     * @return Crawler
      */
-    public function setRegex($regex)
+    public function setExpression($expression)
     {
-        $this->regex = $regex;
+        $this->expression = $expression;
 
         return $this;
     }
@@ -134,7 +128,7 @@ class Crawler {
      * Set the interval in seconds between page crawls
      *
      * @param  int  $interval
-     * @return \Laurentvw\LavaCrawler\Crawler
+     * @return Crawler
      */
     public function setInterval($interval)
     {
@@ -147,7 +141,7 @@ class Crawler {
      * Set the matches
      *
      * @param  array  $matches
-     * @return \Laurentvw\LavaCrawler\Crawler
+     * @return Crawler
      */
     public function setMatches(array $matches)
     {
@@ -160,7 +154,7 @@ class Crawler {
      * Set the filter
      *
      * @param  \Closure  $filter
-     * @return \Laurentvw\LavaCrawler\Crawler
+     * @return Crawler
      */
     public function setFilter($filter)
     {
@@ -173,7 +167,7 @@ class Crawler {
      * Set message output or not
      *
      * @param  bool  $verbose
-     * @return \Laurentvw\LavaCrawler\Crawler
+     * @return Crawler
      */
     public function setVerbose($verbose)
     {
@@ -182,26 +176,16 @@ class Crawler {
         return $this;
     }
 
-    public function addMessage($msg, $newLines = 1)
-    {
-        $this->messages .= $msg;
-
-        for ($i = 0; $i < $newLines; $i++)
-        {
-            $this->messages .= "\r\n";
-        }
-    }
-
     public function getMessages()
     {
-        return $this->messages;
+        return $this->matcher->getMessages();
     }
 
     /**
      * Take n-number of matches
      *
      * @param int $n
-     * @return \Laurentvw\LavaCrawler\Crawler
+     * @return Crawler
      */
     public function take($n)
     {
@@ -214,7 +198,7 @@ class Crawler {
      * Skip n-number of matches
      *
      * @param int $n
-     * @return \Laurentvw\LavaCrawler\Crawler
+     * @return Crawler
      */
     public function skip($n)
     {
@@ -229,7 +213,7 @@ class Crawler {
      * @param string $name
      * @param string $order
      * @param string $projection
-     * @return \Laurentvw\LavaCrawler\Crawler
+     * @return Crawler
      */
     public function orderBy($name, $order = 'asc', $projection = null)
     {
@@ -283,40 +267,11 @@ class Crawler {
      */
     public function crawl()
     {
-        $i = 0;
-
         foreach ($this->urls as $url)
         {
-            $this->addMessage('Crawling ' . $url);
-
             $page = new Page($url);
-            $html = $page->getHTML();
 
-            if (preg_match_all('/'.$this->regex.'/ms', $html, $matchLines, PREG_SET_ORDER))
-            {
-                foreach ($matchLines as $matchLine)
-                {
-                    if ($this->results[$i] = $this->matcher->fetch($matchLine, $url))
-                    {
-                        $i++;
-                    }
-                    else
-                    {
-                        // Remove this match from the data set
-                        unset($this->results[$i]);
-
-                        if ($this->matcher->getErrors())
-                        {
-                            $this->addMessage('On ' . $url);
-                            $this->addMessage($this->matcher->getErrors());
-                        }
-                    }
-                }
-            }
-            else
-            {
-                $this->addMessage('HTML/Regex is broken on ' . $url);
-            }
+            $this->results = $this->matcher->getMatches($page, $this->expression);
 
             $this->afterCrawl();
         }
@@ -343,7 +298,7 @@ class Crawler {
         {
             echo $this->getMessages();
             flush();
-            $this->messages = '';
+            $this->matcher->clearMessages();
         }
 
         if ($this->interval > 0) sleep($this->interval);

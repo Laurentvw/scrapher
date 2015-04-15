@@ -4,7 +4,8 @@ class Page {
 
     protected $url;
 
-    function __construct($url) {
+    function __construct($url)
+    {
         $this->url = $url;
     }
 
@@ -35,5 +36,10 @@ class Page {
         curl_close($ch);
 
         return $data;
+    }
+
+    public function getURL()
+    {
+        return $this->url;
     }
 }

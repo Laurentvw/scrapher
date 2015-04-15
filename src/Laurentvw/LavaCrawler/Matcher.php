@@ -2,6 +2,8 @@
 
 use \Closure;
 use \Illuminate\Validation\Factory as ValidationFactory;
+use Laurentvw\LavaCrawler\Selectors\RegexSelector;
+use Laurentvw\LavaCrawler\Selectors\Selector;
 use \Symfony\Component\Translation\Translator;
 
 class Matcher {
@@ -12,9 +14,16 @@ class Matcher {
     protected $matches = array();
 
     /**
+     * A log
+     *
      * @var string
      */
-    protected $errors = '';
+    protected $messages = '';
+
+    /**
+     * @var Selector
+     */
+    protected $selector = null;
 
     /**
      * @var \Closure
@@ -29,13 +38,12 @@ class Matcher {
     /**
      * Create a new Matcher instance.
      *
-     * @param array $matches
+     * @param Selector $selector
      * @param \Closure $filter
-     * @return void
      */
-    function __construct($matches = array(), $filter = null)
+    function __construct(Selector $selector, $filter = null)
     {
-        $this->setMatches($matches);
+        $this->setSelector($selector);
         $this->setFilter($filter);
 
         $translator = new Translator('en');
@@ -46,7 +54,7 @@ class Matcher {
      * Set the matches
      *
      * @param array $matches
-     * @return \Laurentvw\LavaCrawler\Matcher
+     * @return Matcher
      */
     public function setMatches(array $matches)
     {
@@ -56,10 +64,50 @@ class Matcher {
     }
 
     /**
+     * Set a match
+     *
+     * @param $match
+     * @return Matcher
+     */
+    public function setMatch($match)
+    {
+        $this->matches[] = $match;
+
+        return $this;
+    }
+
+    /**
+     * Set the selector
+     *
+     * @param Selector $selector
+     * @return Matcher
+     */
+    public function setSelector(Selector $selector)
+    {
+        $this->selector = $selector;
+
+        return $this;
+    }
+
+    /**
+     * Get the selector
+     *
+     * @return Selector
+     */
+    public function getSelector()
+    {
+        if ( ! $this->selector) {
+            return new RegexSelector();
+        }
+        
+        return $this->selector;
+    }
+
+    /**
      * Set the filter to be applied to the matches
      *
      * @param \Closure $filter
-     * @return \Laurentvw\LavaCrawler\Matcher
+     * @return Matcher
      */
     public function setFilter($filter = null)
     {
@@ -68,9 +116,60 @@ class Matcher {
         return $this;
     }
 
-    public function getErrors()
+    public function getMessages()
     {
-        return $this->errors;
+        return $this->messages;
+    }
+
+    public function addMessage($msg, $newLines = 1)
+    {
+        $this->messages .= $msg;
+
+        for ($i = 0; $i < $newLines; $i++)
+        {
+            $this->messages .= "<br><br>\r\n";
+        }
+    }
+
+    public function clearMessages()
+    {
+        $this->messages = '';
+    }
+
+    /**
+     * @param $page
+     * @param $selectorExpression
+     * @return array
+     */
+    public function getMatches($page, $selectorExpression)
+    {
+        $filteredResults = array();
+
+        $this->addMessage('Crawling ' . $page->getURL());
+
+        $this->getSelector()->setContent($page->getHTML());
+        $this->getSelector()->setExpression($selectorExpression);
+
+        $matches = $this->getSelector()->getMatches();
+
+        if ($matches)
+        {
+            foreach ($matches as $matchLine)
+            {
+                $filteredResult = $this->fetch($matchLine, $page->getURL());
+
+                if ($filteredResult)
+                {
+                    $filteredResults[] = $filteredResult;
+                }
+            }
+        }
+        else
+        {
+            $this->addMessage('HTML/Regex is broken on ' . $page->getURL());
+        }
+
+        return $filteredResults;
     }
 
     /**
@@ -83,7 +182,6 @@ class Matcher {
     public function fetch(array $data, $url = '')
     {
         $result = array();
-        $this->errors = '';
         $dataRules = array();
 
         foreach ($this->matches as $match)
@@ -109,16 +207,15 @@ class Matcher {
         $validator = $this->validationFactory->make($result, $dataRules);
         if ($validator->fails())
         {
-            $this->errors .= 'Validation failed for: ' . "\r\n";
+            $this->addMessage('Validation failed for: ');
+
             foreach ($validator->messages()->getMessages() as $name => $messages)
             {
                 foreach ($messages as $message)
                 {
-                    $this->errors .= var_export($result[$name], true) . ': ' . $message . "\r\n";
+                    $this->addMessage(var_export($result[$name], true) . ': ' . $message);
                 }
             }
-
-            $this->errors .= "\r\n";
 
             return false;
         }
