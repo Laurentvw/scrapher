@@ -1,10 +1,9 @@
 <?php namespace Laurentvw\LavaCrawler;
 
 use \Closure;
-use \Illuminate\Validation\Factory as ValidationFactory;
 use Laurentvw\LavaCrawler\Selectors\RegexSelector;
 use Laurentvw\LavaCrawler\Selectors\Selector;
-use \Symfony\Component\Translation\Translator;
+use Valitron\Validator;
 
 class Matcher {
 
@@ -31,11 +30,6 @@ class Matcher {
     protected $filter = null;
 
     /**
-     * @var \Illuminate\Validation\Factory
-     */
-    protected $validationFactory;
-
-    /**
      * Create a new Matcher instance.
      *
      * @param Selector $selector
@@ -45,9 +39,6 @@ class Matcher {
     {
         $this->setSelector($selector);
         $this->setFilter($filter);
-
-        $translator = new Translator('en');
-        $this->validationFactory = new ValidationFactory($translator);
     }
 
     /**
@@ -146,6 +137,7 @@ class Matcher {
         $filteredResults = array();
 
         $this->addMessage('Crawling ' . $page->getURL());
+        $this->addMessage('');
 
         $this->getSelector()->setContent($page->getHTML());
         $this->getSelector()->setExpression($selectorExpression);
@@ -204,17 +196,17 @@ class Matcher {
         }
 
         // Validate the data
-        $validator = $this->validationFactory->make($result, $dataRules);
-        if ($validator->fails())
-        {
-            $this->addMessage('Validation failed for: ');
+        $validator = new Validator($result);
+        $dataRules = $this->formatRulesForValidator($dataRules);
+        $validator->rules($dataRules);
 
-            foreach ($validator->messages()->getMessages() as $name => $messages)
+        if ( ! $validator->validate())
+        {
+            foreach ($validator->errors() as $errorField => $errors)
             {
-                foreach ($messages as $message)
-                {
-                    $this->addMessage(var_export($result[$name], true) . ': ' . $message);
-                }
+                $this->addMessage('Skipping match because validation failed for ' . $errorField . ' (' . $errors[0] . '):');
+                $this->addMessage(var_export($result, true));
+                $this->addMessage('');
             }
 
             return false;
@@ -222,10 +214,37 @@ class Matcher {
         // Filter the data
         elseif ($this->filter && ! call_user_func($this->filter, $result))
         {
+            $this->addMessage('Filtering out match:');
+            $this->addMessage(var_export($result, true));
+            $this->addMessage('');
+
             return false;
         }
 
         return $result;
+    }
+
+    private function formatRulesForValidator($dataRules)
+    {
+        $rulesRes = array();
+        foreach ($dataRules as $fieldRule => $rules) {
+            $rulesArr = explode('|', $rules);
+            foreach ($rulesArr as $rule) {
+                $ruleArr = explode(':', $rule);
+                $ruleVals = array();
+                $ruleVals[] = $fieldRule;
+                if (isset($ruleArr[1])) {
+                    $ruleVal = explode(',', $ruleArr[1]);
+                    if (count($ruleVal) < 2) {
+                        $ruleVals[] = $ruleVal[0];
+                    } else {
+                        $ruleVals[] = $ruleVal;
+                    }
+                }
+                $rulesRes[$ruleArr[0]][] = $ruleVals;
+            }
+        }
+        return $rulesRes;
     }
 
 }
