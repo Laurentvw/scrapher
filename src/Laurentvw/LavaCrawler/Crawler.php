@@ -271,7 +271,7 @@ class Crawler {
         {
             $page = new Page($url);
 
-            $this->results = $this->matcher->getMatches($page, $this->expression);
+            $this->results = array_merge($this->results, $this->matcher->getMatches($page, $this->expression));
 
             $this->afterCrawl();
         }
