@@ -15,7 +15,7 @@ Add the package to your `composer.json` and run `composer update`.
         }
     }
 
-*For the people still using v1.0.1 ("LavaCrawler"), you can find the documentation is here: <https://github.com/Laurentvw/scrapher/tree/v1.0.1>*
+*For the people still using v1.0 ("LavaCrawler"), you can find the documentation is here: <https://github.com/Laurentvw/scrapher/tree/v1.0.2>*
 
 Examples
 --------
