@@ -189,8 +189,10 @@ class Scrapher {
                 $this->setContent($content);
             }
         }
-
-        $this->setContent($contents);
+        else
+        {
+            $this->setContent($contents);
+        }
     }
 
     /**
