@@ -203,7 +203,7 @@ $matchConfig = array(
 
 ### Validation
 
-You may validate the matched data to insure that the result set always contains the desired result. Validation happens after optionally mutating the data set with `apply`. To add the validation rules that should be applied to the data, use the `rules` index in the match configuration array. Matches that fail the validation will be removed from the result set.
+You may validate the matched data to insure that the result set always contains the desired result. Validation happens after optionally mutating the data set with `apply`. To add the validation rules that should be applied to the data, use the `validate` index in the match configuration array with a closure that takes one argument: the matched value. The closure should return `true` if the validation succeeded, and `false` if the validation failed. Matches that fail the validation will be removed from the result set.
 
 ```php
 $matchConfig = array(
@@ -211,19 +211,23 @@ $matchConfig = array(
         'name' => 'url',
         'id' => 1,
         // Make sure it is a valid url
-        'rules' => 'url',
+        'validate' => function($match) {
+            return filter_var($match, FILTER_VALIDATE_URL);
+        },
     ),
     array(
         'name' => 'title',
         'id' => 3,
-        // Example usage of multiple validation rules, seperated by a |.
-        'rules' => 'min:1|max:50',
+        // We only want titles that are between 1 and 50 characters long.
+        'validate' => function($match) {
+            return strlen($match) >= 1 && strlen($match) <= 50;
+        },
     ),
     ...
 );
 ```
 
-* See [Laravel validation](http://laravel.com/docs/validation#available-validation-rules) for the available validation rules.
+* To make validation easier, we recommend using <https://github.com/Respect/Validation> in your project.
 
 ### Logging
 

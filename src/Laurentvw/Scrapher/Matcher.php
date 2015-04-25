@@ -2,7 +2,6 @@
 
 use \Closure;
 use Laurentvw\Scrapher\Selectors\Selector;
-use Valitron\Validator;
 
 class Matcher {
 
@@ -163,7 +162,6 @@ class Matcher {
     private function fetch(array $matchLine)
     {
         $result = array();
-        $dataRules = array();
 
         foreach ($this->getSelector()->getConfig() as $match)
         {
@@ -177,29 +175,20 @@ class Matcher {
                 $result[$match['name']] = $matchLine[$match['name']];
             }
 
-            // Get the validation rules for this match
-            if (isset($match['rules']))
+            // Validate this match
+            if (isset($match['validate']))
             {
-                $dataRules[$match['name']] = $match['rules'];
-            }
-        }
-
-        // Validate the data
-        $validator = new Validator($result);
-        $dataRules = $this->formatRulesForValidator($dataRules);
-        $validator->rules($dataRules);
-
-        if ( ! $validator->validate())
-        {
-            foreach ($validator->errors() as $errorField => $errors)
+                if ( ! $match['validate']($matchLine[$match['name']]))
             {
-                $this->addLog('Skipping match because validation failed for ' . $errorField . ' (' . $errors[0] . '): '.var_export($result, true));
-            }
+                    $this->addLog('Skipping match because validation failed for ' . $match['name'] . ': '. $matchLine[$match['name']]);
 
             return false;
         }
+            }
+        }
+
         // Filter the data
-        elseif ($this->filter && ! call_user_func($this->filter, $result))
+        if ($this->filter && ! call_user_func($this->filter, $result))
         {
             $this->addLog('Filtering out match: ' . var_export($result, true));
 
@@ -207,35 +196,6 @@ class Matcher {
         }
 
         return $result;
-    }
-
-    /**
-     * Change the syntax of the validation rules to a different format required by the validator
-     *
-     * @param array $dataRules
-     * @return array
-     */
-    private function formatRulesForValidator(array $dataRules)
-    {
-        $rulesRes = array();
-        foreach ($dataRules as $fieldRule => $rules) {
-            $rulesArr = explode('|', $rules);
-            foreach ($rulesArr as $rule) {
-                $ruleArr = explode(':', $rule);
-                $ruleVals = array();
-                $ruleVals[] = $fieldRule;
-                if (isset($ruleArr[1])) {
-                    $ruleVal = explode(',', $ruleArr[1]);
-                    if (count($ruleVal) < 2) {
-                        $ruleVals[] = $ruleVal[0];
-                    } else {
-                        $ruleVals[] = $ruleVal;
-                    }
-                }
-                $rulesRes[$ruleArr[0]][] = $ruleVals;
-            }
-        }
-        return $rulesRes;
     }
 
 }

@@ -5,8 +5,7 @@
     "keywords": ["scraper", "scraping", "scrape", "extract", "extractor", "crawler", "crawling", "match", "matcher", "parse", "parser", "data", "mining", "harvest", "text", "content", "spider"],
     "homepage": "http://github.com/Laurentvw/scrapher",
     "require": {
-    	"php": ">=5.4.0",
-        "vlucas/valitron": "1.2.*"
+    	"php": ">=5.4.0"
     },
     "license": "MIT",
     "authors": [
