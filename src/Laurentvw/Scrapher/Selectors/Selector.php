@@ -1,8 +1,14 @@
-<?php namespace Laurentvw\LavaCrawler\Selectors;
+<?php namespace Laurentvw\Scrapher\Selectors;
 
 abstract class Selector {
 
-    private $content, $expression;
+    private $content, $expression, $data;
+
+    public function __construct($expression, $data)
+    {
+        $this->expression = $expression;
+        $this->data = $data;
+    }
 
     public function setContent($content)
     {
@@ -12,6 +18,16 @@ abstract class Selector {
     public function getContent()
     {
         return $this->content;
+    }
+
+    public function setData($data)
+    {
+        $this->data = $data;
+    }
+
+    public function getData()
+    {
+        return $this->data;
     }
 
     public function setExpression($expression)

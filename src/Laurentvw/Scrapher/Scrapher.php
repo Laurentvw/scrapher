@@ -1,0 +1,323 @@
+<?php namespace Laurentvw\Scrapher;
+
+use Laurentvw\Scrapher\Selectors\Selector;
+
+class Scrapher {
+
+    /**
+     * The scraper's contents
+     *
+     * @var array
+     */
+    protected $contents = array();
+
+    /**
+     * The crawler's matcher.
+     *
+     * @var \Laurentvw\Scrapher\Matcher
+     */
+    protected $matcher;
+
+    /**
+     * The number of matches to take
+     *
+     * @var int
+     */
+    protected $take;
+
+    /**
+     * The number of matches to skip
+     *
+     * @var int
+     */
+    protected $skip = 0;
+
+    /**
+     * The order of the matches
+     *
+     * @var array
+     */
+    protected $orderBy;
+
+    /**
+     * Create a new Scrapher instance.
+     *
+     * @param string|array $contents
+     */
+    public function __construct($contents)
+    {
+        $this->setContents($contents);
+    }
+
+    /**
+     * Set the type of selector to use
+     *
+     * @param Selector $selector
+     * @return Scrapher
+     */
+    public function with(Selector $selector)
+    {
+        $this->matcher = new Matcher($selector);
+
+        return $this;
+    }
+
+    /**
+     * Filter the resulting matches
+     *
+     * @param  \Closure  $filter
+     * @return Scrapher
+     */
+    public function filter($filter)
+    {
+        $this->getMatcher()->setFilter($filter);
+
+        return $this;
+    }
+
+    /**
+     * Take n-number of matches
+     *
+     * @param int $n
+     * @return Scrapher
+     */
+    public function take($n)
+    {
+        $this->take = $n;
+
+        return $this;
+    }
+    /**
+     * Skip n-number of matches
+     *
+     * @param int $n
+     * @return Scrapher
+     */
+    public function skip($n)
+    {
+        $this->skip = $n;
+
+        return $this;
+    }
+    /**
+     * Order the matches
+     *
+     * @param string $name
+     * @param string $order
+     * @param string $projection
+     * @return Scrapher
+     */
+    public function orderBy($name, $order = 'asc', $projection = null)
+    {
+        $order = strtolower($order) == 'desc' ? SORT_DESC : SORT_ASC;
+        $this->orderBy[] = array($name, $order, $projection);
+
+        return $this;
+    }
+
+    /**
+     * Get all the matches
+     *
+     * @return array
+     */
+    public function get()
+    {
+        return $this->scrape();
+    }
+
+    /**
+     * Get the first match
+     *
+     * @return array
+     */
+    public function first()
+    {
+        $results = $this->scrape();
+
+        return current($results);
+    }
+
+    /**
+     * Get the last match
+     *
+     * @return array
+     */
+    public function last()
+    {
+        $results = $this->scrape();
+
+        return end($results);
+    }
+
+    /**
+     * Count the number of matches
+     *
+     * @return array
+     */
+    public function count()
+    {
+        $results = $this->scrape();
+
+        return count($results);
+    }
+
+    /**
+     * Get detailed logs of the scraping
+     *
+     * @return array
+     */
+    public function getLogs()
+    {
+        return $this->getMatcher()->getLogs();
+    }
+
+    /**
+     * Set the contents to be scraped
+     *
+     * Can either be the actual content (HTML, ...) or the URL
+     *
+     * You may pass multiple content at once by using an array
+     *
+     * @param string|array $contents
+     */
+    protected function setContents($contents)
+    {
+        if (is_array($contents))
+        {
+            foreach ($contents as $content)
+            {
+                $this->setContent($content);
+            }
+        }
+
+        $this->setContent($contents);
+    }
+
+    /**
+     * Set a content to be scraped
+     *
+     * Can either be the actual content (HTML, ...) or the URL
+     *
+     * @param string $content
+     */
+    protected function setContent($content)
+    {
+        if (substr($content, 0, 4) == 'http')
+        {
+            $page = new Page($content);
+            $this->contents[] = $page->getHTML();
+        }
+        else
+        {
+            $this->contents[] = $content;
+        }
+    }
+
+    /**
+     * The matcher
+     *
+     * @return Matcher
+     */
+    protected function getMatcher()
+    {
+        return $this->matcher;
+    }
+
+    /**
+     * The actual scraping
+     *
+     * @return array
+     */
+    protected function scrape()
+    {
+        $results = array();
+
+        foreach ($this->contents as $content)
+        {
+            $results = array_merge($results, $this->getMatcher()->getMatches($content));
+        }
+
+        if ($results)
+        {
+            // Order by
+            if ($this->orderBy)
+            {
+                usort($results, call_user_func_array('self::make_comparer', $this->orderBy));
+            }
+            // Skip & Take
+            if ($this->skip > 0 || $this->take)
+            {
+                $results = array_slice($results, $this->skip, $this->take);
+            }
+        }
+
+        $this->clear();
+
+        return $results;
+    }
+
+    /**
+     * Clear the scraping configuration
+     *
+     * This allows us to scrape the same contents again, but with a different selector
+     */
+    protected function clear()
+    {
+        $this->take = null;
+        $this->orderBy = null;
+        $this->skip = 0;
+    }
+
+    /**
+     * This is a callable component of usort.
+     *
+     * For simple ascending sorts (multiple column included):
+     * usort($row, make_comparer('column_name'[, 'other_column_name']);
+     *
+     * For setting a descending sort
+     * usort($rows, make_comparer(array('column_name', SORT_DESC)));
+     *
+     * To include a function result on a column
+     * usort($rows, make_comparer(array('column_name', SORT_ASC, 'function_name')));
+     *
+     * From stackoverflow.com : user - jon
+     * http://stackoverflow.com/questions/96759/how-do-i-sort-a-multidimensional-array-in-php
+     * http://stackoverflow.com/users/50079/jon
+     * @return int
+     */
+    private static function make_comparer()
+    {
+        // Normalize criteria up front so that the comparer finds everything tidy
+        $criteria = func_get_args();
+        foreach ($criteria as $index => $criterion) {
+            $criteria[$index] = is_array($criterion)
+                ? array_pad($criterion, 3, null)
+                : array($criterion, SORT_ASC, null);
+        }
+        return function($first, $second) use (&$criteria) {
+            foreach ($criteria as $criterion) {
+                // How will we compare this round?
+                list($column, $sortOrder, $projection) = $criterion;
+                $sortOrder = $sortOrder === SORT_DESC ? -1 : 1;
+                // If a projection was defined project the values now
+                if ($projection) {
+                    $lhs = call_user_func($projection, $first[$column]);
+                    $rhs = call_user_func($projection, $second[$column]);
+                }
+                else {
+                    $lhs = $first[$column];
+                    $rhs = $second[$column];
+                }
+                // Do the actual comparison; do not return if equal
+                if ($lhs < $rhs) {
+                    return -1 * $sortOrder;
+                }
+                else if ($lhs > $rhs) {
+                    return 1 * $sortOrder;
+                }
+            }
+            return 0; // tiebreakers exhausted, so $first == $second
+        };
+    }
+
+}

@@ -1,8 +1,7 @@
-<?php namespace Laurentvw\LavaCrawler;
+<?php namespace Laurentvw\Scrapher;
 
 use \Closure;
-use Laurentvw\LavaCrawler\Selectors\RegexSelector;
-use Laurentvw\LavaCrawler\Selectors\Selector;
+use Laurentvw\Scrapher\Selectors\Selector;
 use Valitron\Validator;
 
 class Matcher {
@@ -13,11 +12,11 @@ class Matcher {
     protected $matches = array();
 
     /**
-     * A log
+     * Logs
      *
-     * @var string
+     * @var array
      */
-    protected $messages = '';
+    protected $logs = array();
 
     /**
      * @var Selector
@@ -87,10 +86,6 @@ class Matcher {
      */
     public function getSelector()
     {
-        if ( ! $this->selector) {
-            return new RegexSelector();
-        }
-        
         return $this->selector;
     }
 
@@ -107,48 +102,43 @@ class Matcher {
         return $this;
     }
 
-    public function getMessages()
+    /**
+     * Get detailed logs of the scraping
+     *
+     * @return array
+     */
+    public function getLogs()
     {
-        return $this->messages;
-    }
-
-    public function addMessage($msg, $newLines = 1)
-    {
-        $this->messages .= $msg;
-
-        for ($i = 0; $i < $newLines; $i++)
-        {
-            $this->messages .= "<br><br>\r\n";
-        }
-    }
-
-    public function clearMessages()
-    {
-        $this->messages = '';
+        return $this->logs;
     }
 
     /**
-     * @param $page
-     * @param $selectorExpression
+     * Add a log message
+     *
+     * @param string $msg
+     */
+    public function addLog($msg)
+    {
+        $this->logs[] = $msg;
+    }
+
+    /**
+     * @param $content
      * @return array
      */
-    public function getMatches($page, $selectorExpression)
+    public function getMatches($content)
     {
         $filteredResults = array();
 
-        $this->addMessage('Crawling ' . $page->getURL());
-        $this->addMessage('');
-
-        $this->getSelector()->setContent($page->getHTML());
-        $this->getSelector()->setExpression($selectorExpression);
+        $this->getSelector()->setContent($content);
 
         $matches = $this->getSelector()->getMatches();
 
         if ($matches)
         {
-            foreach ($matches as $matchLine)
+            foreach ($this->getSelector()->getMatches() as $matchLine)
             {
-                $filteredResult = $this->fetch($matchLine, $page->getURL());
+                $filteredResult = $this->fetch($matchLine);
 
                 if ($filteredResult)
                 {
@@ -158,7 +148,7 @@ class Matcher {
         }
         else
         {
-            $this->addMessage('HTML/Regex is broken on ' . $page->getURL());
+            $this->addLog('The HTML or Selector expression is broken');
         }
 
         return $filteredResults;
@@ -167,25 +157,24 @@ class Matcher {
     /**
      * Fetch the values from a match
      *
-     * @param array $data
-     * @param string $url
+     * @param array $matchLine
      * @return array
      */
-    public function fetch(array $data, $url = '')
+    private function fetch(array $matchLine)
     {
         $result = array();
         $dataRules = array();
 
-        foreach ($this->matches as $match)
+        foreach ($this->getSelector()->getData() as $match)
         {
             // Get the match value, optionally apply a function to it
             if (isset($match['apply']))
             {
-                $result[$match['name']] = $match['apply']($data[$match['id']], $url);
+                $result[$match['name']] = $match['apply']($matchLine[$match['name']]);
             }
             else
             {
-                $result[$match['name']] = $data[$match['id']];
+                $result[$match['name']] = $matchLine[$match['name']];
             }
 
             // Get the validation rules for this match
@@ -204,9 +193,7 @@ class Matcher {
         {
             foreach ($validator->errors() as $errorField => $errors)
             {
-                $this->addMessage('Skipping match because validation failed for ' . $errorField . ' (' . $errors[0] . '):');
-                $this->addMessage(var_export($result, true));
-                $this->addMessage('');
+                $this->addLog('Skipping match because validation failed for ' . $errorField . ' (' . $errors[0] . '): '.var_export($result, true));
             }
 
             return false;
@@ -214,9 +201,7 @@ class Matcher {
         // Filter the data
         elseif ($this->filter && ! call_user_func($this->filter, $result))
         {
-            $this->addMessage('Filtering out match:');
-            $this->addMessage(var_export($result, true));
-            $this->addMessage('');
+            $this->addLog('Filtering out match: ' . var_export($result, true));
 
             return false;
         }
@@ -224,7 +209,13 @@ class Matcher {
         return $result;
     }
 
-    private function formatRulesForValidator($dataRules)
+    /**
+     * Change the syntax of the validation rules to a different format required by the validator
+     *
+     * @param array $dataRules
+     * @return array
+     */
+    private function formatRulesForValidator(array $dataRules)
     {
         $rulesRes = array();
         foreach ($dataRules as $fieldRule => $rules) {

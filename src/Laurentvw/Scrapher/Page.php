@@ -1,10 +1,10 @@
-<?php namespace Laurentvw\LavaCrawler;
+<?php namespace Laurentvw\Scrapher;
 
 class Page {
 
-    protected $url;
+    private $url;
 
-    function __construct($url)
+    public function __construct($url)
     {
         $this->url = $url;
     }

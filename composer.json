@@ -1,9 +1,9 @@
 {
-    "name": "laurentvw/lavacrawler",
+    "name": "laurentvw/scrapher",
     "type": "library",
     "description": "A PHP library to easily scrape data from web pages",
-    "keywords": ["crawler", "scraper", "crawling", "scraping"],
-    "homepage": "http://github.com/Laurentvw/LavaCrawler",
+    "keywords": ["scraper", "scraping", "scrape", "extract", "extractor", "crawler", "crawling", "match", "matcher", "parse", "parser", "data", "mining", "harvest", "text", "content", "spider"],
+    "homepage": "http://github.com/Laurentvw/scrapher",
     "require": {
     	"php": ">=5.4.0",
         "vlucas/valitron": "1.2.*"
@@ -18,7 +18,7 @@
     ],
     "autoload": {
         "psr-0": {
-            "Laurentvw\\LavaCrawler": "src/"
+            "Laurentvw\\Scrapher": "src/"
         }
     },
     "minimum-stability": "dev"
