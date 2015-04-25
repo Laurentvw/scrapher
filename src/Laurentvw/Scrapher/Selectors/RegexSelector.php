@@ -6,13 +6,13 @@ class RegexSelector extends Selector {
     {
         $matches = array();
 
-        preg_match_all('/'.$this->getExpression().'/ms', $this->getContent(), $matchLines, PREG_SET_ORDER);
+        preg_match_all($this->getExpression(), $this->getContent(), $matchLines, PREG_SET_ORDER);
 
         foreach ($matchLines as $i => $matchLine)
         {
             foreach ($matchLine as $matchId => $matchValue)
             {
-                $matches[$i][$this->findName($this->getData(), $matchId)] = $matchValue;
+                $matches[$i][$this->findName($this->getConfig(), $matchId)] = $matchValue;
             }
         }
 

@@ -2,12 +2,12 @@
 
 abstract class Selector {
 
-    private $content, $expression, $data;
+    private $content, $expression, $config;
 
-    public function __construct($expression, $data)
+    public function __construct($expression, $config)
     {
         $this->expression = $expression;
-        $this->data = $data;
+        $this->config = $config;
     }
 
     public function setContent($content)
@@ -20,14 +20,14 @@ abstract class Selector {
         return $this->content;
     }
 
-    public function setData($data)
+    public function setConfig($config)
     {
-        $this->data = $data;
+        $this->config = $config;
     }
 
-    public function getData()
+    public function getConfig()
     {
-        return $this->data;
+        return $this->config;
     }
 
     public function setExpression($expression)

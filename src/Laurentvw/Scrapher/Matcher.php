@@ -165,7 +165,7 @@ class Matcher {
         $result = array();
         $dataRules = array();
 
-        foreach ($this->getSelector()->getData() as $match)
+        foreach ($this->getSelector()->getConfig() as $match)
         {
             // Get the match value, optionally apply a function to it
             if (isset($match['apply']))

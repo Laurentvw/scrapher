@@ -1,7 +1,7 @@
 Scrapher
 ===========
 
-A PHP library to easily scrape data from web pages
+Scrapher is a PHP library to easily scrape data from web pages.
 
 
 Installation
@@ -22,7 +22,7 @@ Examples
 
 ### Basic Usage
 
-In order to start scraping, you need to set the URL(s) or HTML to scrape, and a type of selector to use (for example a regex selector, together with the matched data to return).
+In order to start scraping, you need to set the URL(s) or HTML to scrape, and a type of selector to use (for example a regex selector, together with the data you wish to match).
 
 ```php
 use \Laurentvw\Scrapher\Scrapher;
@@ -32,7 +32,7 @@ $url = 'https://www.google.com/';
 $scrapher = new Scrapher($url);
 
 // Match all links on a page
-$regex = '<a.*?href=(?:"(.*?)"|\'(.*?)\').*?>(.*?)<\/a>';
+$regex = '/<a.*?href=(?:"(.*?)"|\'(.*?)\').*?>(.*?)<\/a>/ms';
 
 $matchConfig = array(
     array(
@@ -85,14 +85,14 @@ $scrapher = new Scrapher(array($content, $content2));
 
 Before retrieving or sorting the matched data, you need to choose a selector to match the data you want.
 
-At the moment, Scrapher offers just 1 selector out of the box, **RegexSelector**, which let's you select data using regular expressions.
+At the moment, Scrapher offers 1 selector out of the box, **RegexSelector**, which let's you select data using regular expressions.
 
 A Selector takes an expression and a match configuration as its arguments.
 
 For example, to match all links and their link name, you could do:
 
 ```php
-$regExpression = '<a.*?href=(?:"(.*?)"|\'(.*?)\').*?>(.*?)<\/a>';
+$regExpression = '/<a.*?href=(?:"(.*?)"|\'(.*?)\').*?>(.*?)<\/a>/ms';
 
 $matchConfig = array(
     array(
@@ -132,7 +132,7 @@ $result = $matches->first();
 $result = $matches->last();
 
 // Count the number of matches
-$numberOfLinks = $matches->count();
+$numberOfMatches = $matches->count();
 ```
 
 **Offset & limit**
