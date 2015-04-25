@@ -40,32 +40,6 @@ class Matcher {
     }
 
     /**
-     * Set the matches
-     *
-     * @param array $matches
-     * @return Matcher
-     */
-    public function setMatches(array $matches)
-    {
-        $this->matches = $matches;
-
-        return $this;
-    }
-
-    /**
-     * Set a match
-     *
-     * @param $match
-     * @return Matcher
-     */
-    public function setMatch($match)
-    {
-        $this->matches[] = $match;
-
-        return $this;
-    }
-
-    /**
      * Set the selector
      *
      * @param Selector $selector
