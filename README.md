@@ -4,8 +4,10 @@ Scrapher
 Scrapher is a PHP library to easily scrape data from web pages.
 
 
-Installation
-------------
+Getting Started
+---------------
+
+### Installation
 
 Add the package to your `composer.json` and run `composer update`.
 
@@ -17,8 +19,6 @@ Add the package to your `composer.json` and run `composer update`.
 
 *For the people still using v1.0 ("LavaCrawler"), you can find the documentation is here: <https://github.com/Laurentvw/scrapher/tree/v1.0.2>*
 
-Examples
---------
 
 ### Basic Usage
 
@@ -62,6 +62,9 @@ This returns a list of arrays based on the match configuration that was set.
       }
       ...
     }
+    
+Documentation
+-------------
 
 ### Instantiating
 
@@ -244,6 +247,27 @@ If you wish to see the matches that were filtered out, or removed due to failed 
 
 ```php
 $logs = $matches->getLogs();
+```
+
+### Did you know?
+
+**All methods are chainable**
+
+```php
+$scrapher = new Scrapher();
+$scrapher->addUrl($url)->with($regexSelector)->filter(...)->orderBy('title')->skip(1)->take(5)->get();
+```
+
+Only the methods `get`, `first`, `last`, `count` and `getLogs` will cause the chaining to end, as they all return a certain result.
+
+**You can scrape different data from one page**
+
+Suppose you're scraping a page, and you want to get all H2 titles, as well as all links on the page. You can do so without having to re-instantiate Scrapher.
+
+```php
+$scrapher = new Scrapher($url);
+$h2Titles = $scrapher->with($h2RegexSelector)->get();
+$links = $scrapher->with($linksRegexSelector)->get();
 ```
 
 About
