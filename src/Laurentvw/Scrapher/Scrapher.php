@@ -1,5 +1,6 @@
 <?php namespace Laurentvw\Scrapher;
 
+use Laurentvw\Scrapher\Exceptions\ContentNotFoundException;
 use Laurentvw\Scrapher\Selectors\Selector;
 
 class Scrapher {
@@ -42,11 +43,90 @@ class Scrapher {
     /**
      * Create a new Scrapher instance.
      *
-     * @param string|array $contents
+     * You may optionally pass the contents or URLs to scrape.
+     *
+     * @param string|array|null $contents
      */
-    public function __construct($contents)
+    public function __construct($contents = null)
     {
-        $this->setContents($contents);
+        if ($contents)
+        {
+            if ( ! is_array($contents))
+            {
+                $contents = array($contents);
+            }
+
+            foreach ($contents as $content)
+            {
+                if (substr($content, 0, 4) == 'http')
+                {
+                    $this->addUrl($content);
+                }
+                else
+                {
+                    $this->addContent($content);
+                }
+            }
+        }
+    }
+
+    /**
+     * Add URL to scrape
+     *
+     * @param string $url
+     * @return Scrapher
+     */
+    public function addUrl($url)
+    {
+        $page = new Page($url);
+        $this->addContent($page->getHTML());
+
+        return $this;
+    }
+
+    /**
+     * Add URLs to scrape
+     *
+     * @param array $urls
+     * @return Scrapher
+     */
+    public function addUrls(array $urls)
+    {
+        foreach ($urls as $url)
+        {
+            $this->addUrl($url);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Add content to scrape
+     *
+     * @param string $content
+     * @return Scrapher
+     */
+    public function addContent($content)
+    {
+        $this->contents[] = $content;
+
+        return $this;
+    }
+
+    /**
+     * Add contents to scrape
+     *
+     * @param array $contents
+     * @return Scrapher
+     */
+    public function addContents(array $contents)
+    {
+        foreach ($contents as $content)
+        {
+            $this->addContent($content);
+        }
+
+        return $this;
     }
 
     /**
@@ -172,50 +252,6 @@ class Scrapher {
     }
 
     /**
-     * Set the contents to be scraped
-     *
-     * Can either be the actual content (HTML, ...) or the URL
-     *
-     * You may pass multiple content at once by using an array
-     *
-     * @param string|array $contents
-     */
-    protected function setContents($contents)
-    {
-        if (is_array($contents))
-        {
-            foreach ($contents as $content)
-            {
-                $this->setContent($content);
-            }
-        }
-        else
-        {
-            $this->setContent($contents);
-        }
-    }
-
-    /**
-     * Set a content to be scraped
-     *
-     * Can either be the actual content (HTML, ...) or the URL
-     *
-     * @param string $content
-     */
-    protected function setContent($content)
-    {
-        if (substr($content, 0, 4) == 'http')
-        {
-            $page = new Page($content);
-            $this->contents[] = $page->getHTML();
-        }
-        else
-        {
-            $this->contents[] = $content;
-        }
-    }
-
-    /**
      * The matcher
      *
      * @return Matcher
@@ -229,9 +265,15 @@ class Scrapher {
      * The actual scraping
      *
      * @return array
+     * @throws ContentNotFoundException
      */
     protected function scrape()
     {
+        if ( ! $this->contents)
+        {
+            throw new ContentNotFoundException;
+        }
+
         $results = array();
 
         foreach ($this->contents as $content)
@@ -244,7 +286,7 @@ class Scrapher {
             // Order by
             if ($this->orderBy)
             {
-                usort($results, call_user_func_array('self::make_comparer', $this->orderBy));
+                usort($results, call_user_func_array('self::makeComparer', $this->orderBy));
             }
             // Skip & Take
             if ($this->skip > 0 || $this->take)
@@ -287,7 +329,7 @@ class Scrapher {
      * http://stackoverflow.com/users/50079/jon
      * @return int
      */
-    private static function make_comparer()
+    private static function makeComparer()
     {
         // Normalize criteria up front so that the comparer finds everything tidy
         $criteria = func_get_args();

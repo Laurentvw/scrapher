@@ -30,9 +30,6 @@ class Page {
 
         $data = curl_exec($ch);
         
-        //$size = curl_getinfo($ch, CURLINFO_SIZE_DOWNLOAD);
-        //$url = curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
-        
         curl_close($ch);
 
         return $data;
