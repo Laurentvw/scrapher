@@ -1,6 +1,5 @@
 <?php namespace Laurentvw\Scrapher;
 
-use \Closure;
 use Laurentvw\Scrapher\Selectors\Selector;
 
 class Matcher {

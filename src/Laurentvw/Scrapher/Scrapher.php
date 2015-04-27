@@ -286,7 +286,7 @@ class Scrapher {
             // Order by
             if ($this->orderBy)
             {
-                usort($results, call_user_func_array('self::make_comparer', $this->orderBy));
+                usort($results, call_user_func_array('self::makeComparer', $this->orderBy));
             }
             // Skip & Take
             if ($this->skip > 0 || $this->take)
@@ -329,7 +329,7 @@ class Scrapher {
      * http://stackoverflow.com/users/50079/jon
      * @return int
      */
-    private static function make_comparer()
+    private static function makeComparer()
     {
         // Normalize criteria up front so that the comparer finds everything tidy
         $criteria = func_get_args();
