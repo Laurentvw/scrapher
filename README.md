@@ -32,16 +32,16 @@ $url = 'https://www.google.com/';
 $scrapher = new Scrapher($url);
 
 // Match all links on a page
-$regex = '/<a.*?href=(?:"(.*?)"|\'(.*?)\').*?>(.*?)<\/a>/ms';
+$regex = '/<a.*?href=(?:"(.*?)").*?>(.*?)<\/a>/ms';
 
 $matchConfig = array(
     array(
         'name' => 'url',
-        'id' => 1, // the second match from the regex (first match starts at index 0)
+        'id' => 1, // the first match (.*?) from the regex
     ),
     array(
         'name' => 'title',
-        'id' => 3
+        'id' => 2, // the second match (.*?) from the regex
     ),
 );
 
@@ -104,7 +104,7 @@ A Selector takes an expression and a match configuration as its arguments.
 For example, to match all links and their link name, you could do:
 
 ```php
-$regExpression = '/<a.*?href=(?:"(.*?)"|\'(.*?)\').*?>(.*?)<\/a>/ms';
+$regExpression = '/<a.*?href=(?:"(.*?)").*?>(.*?)<\/a>/ms';
 
 $matchConfig = array(
     array(
@@ -112,12 +112,12 @@ $matchConfig = array(
         // and will be used when retrieving the matched data
         'name' => 'url',
         // The "id" key is an identifier used during the regular expression search.
-        // The index 1 corresponds to the second group of wildcards in the regex expression, matching the URL.
+        // The id 1 corresponds to the first match in the regular expression, matching the URL.
         'id' => 1,
     ),
     array(
         'name' => 'title',
-        'id' => 3
+        'id' => 2,
     ),
 );
 
@@ -177,7 +177,7 @@ $results = $matches->orderBy('date', 'desc', 'date_create')->get();
 
 You can filter the matched data to refine your result set. Return `true` to keep the match, `false` to filter it out.
 ```php
-$matches = $matches->filter(function($match) {
+$matches->filter(function($match) {
     // Return only matches that contain 'Google' in the link title.
     return stristr($match['title'], 'Google') ? true : false;
 });
@@ -203,7 +203,7 @@ $matchConfig = array(
     ),
     array(
         'name' => 'title',
-        'id' => 3,
+        'id' => 2,
         // Remove all html tags inside the link title
         'apply' => function($match) {
             return strip_tags($match);
@@ -229,7 +229,7 @@ $matchConfig = array(
     ),
     array(
         'name' => 'title',
-        'id' => 3,
+        'id' => 2,
         // We only want titles that are between 1 and 50 characters long.
         'validate' => function($match) {
             return strlen($match) >= 1 && strlen($match) <= 50;
