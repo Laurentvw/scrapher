@@ -65,7 +65,7 @@ This returns a list of arrays based on the match configuration that was set.
 
 ### Instantiating
 
-When creating an instance of Scrapher, you have the option to pass one or more URLs.
+When creating an instance of Scrapher, you may optionally pass one or more URLs.
 
 Passing multiple URLs can be useful when you want to scrape the same data on different pages. For example when content is separated by pagination.
 
@@ -79,6 +79,15 @@ If you prefer to fetch the page yourself using a dedicated client/library, you m
 ```php
 $scrapher = new Scrapher($content);
 $scrapher = new Scrapher(array($content, $content2));
+```
+
+In some cases, you may want to add (read: append) URLs or contents on the fly.
+
+```php
+$scrapher->addUrl($url);
+$scrapher->addUrls([$url, $url2]);
+$scrapher->addContent($content);
+$scrapher->addContents([$content, $content2]);
 ```
 
 ### Matching data using a Selector
