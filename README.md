@@ -88,9 +88,9 @@ In some cases, you may want to add (read: append) URLs or contents on the fly.
 
 ```php
 $scrapher->addUrl($url);
-$scrapher->addUrls([$url, $url2]);
+$scrapher->addUrls(array($url, $url2));
 $scrapher->addContent($content);
-$scrapher->addContents([$content, $content2]);
+$scrapher->addContents(array($content, $content2));
 ```
 
 ### Matching data using a Selector
