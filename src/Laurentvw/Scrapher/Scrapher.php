@@ -1,6 +1,7 @@
 <?php namespace Laurentvw\Scrapher;
 
 use Laurentvw\Scrapher\Exceptions\ContentNotFoundException;
+use Laurentvw\Scrapher\Exceptions\SelectorNotFoundException;
 use Laurentvw\Scrapher\Selectors\Selector;
 
 class Scrapher {
@@ -255,9 +256,15 @@ class Scrapher {
      * The matcher
      *
      * @return Matcher
+     * @throws SelectorNotFoundException
      */
     protected function getMatcher()
     {
+        if ( ! $this->matcher)
+        {
+            throw new SelectorNotFoundException;
+        }
+
         return $this->matcher;
     }
 
