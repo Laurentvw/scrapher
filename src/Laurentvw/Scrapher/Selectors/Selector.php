@@ -1,7 +1,9 @@
-<?php namespace Laurentvw\Scrapher\Selectors;
+<?php
 
-abstract class Selector {
+namespace Laurentvw\Scrapher\Selectors;
 
+abstract class Selector
+{
     private $content, $expression, $config;
 
     public function __construct($expression, $config)
@@ -41,5 +43,4 @@ abstract class Selector {
     }
 
     abstract public function getMatches();
-
 }
