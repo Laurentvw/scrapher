@@ -1,13 +1,15 @@
-<?php namespace Laurentvw\Scrapher;
+<?php
+
+namespace Laurentvw\Scrapher;
 
 use Laurentvw\Scrapher\Exceptions\ContentNotFoundException;
 use Laurentvw\Scrapher\Exceptions\SelectorNotFoundException;
 use Laurentvw\Scrapher\Selectors\Selector;
 
-class Scrapher {
-
+class Scrapher
+{
     /**
-     * The scraper's contents
+     * The scraper's contents.
      *
      * @var array
      */
@@ -21,21 +23,21 @@ class Scrapher {
     protected $matcher;
 
     /**
-     * The number of matches to take
+     * The number of matches to take.
      *
      * @var int
      */
     protected $take;
 
     /**
-     * The number of matches to skip
+     * The number of matches to skip.
      *
      * @var int
      */
     protected $skip = 0;
 
     /**
-     * The order of the matches
+     * The order of the matches.
      *
      * @var array
      */
@@ -50,21 +52,15 @@ class Scrapher {
      */
     public function __construct($contents = null)
     {
-        if ($contents)
-        {
-            if ( ! is_array($contents))
-            {
-                $contents = array($contents);
+        if ($contents) {
+            if (!is_array($contents)) {
+                $contents = [$contents];
             }
 
-            foreach ($contents as $content)
-            {
-                if (substr($content, 0, 4) == 'http')
-                {
+            foreach ($contents as $content) {
+                if (substr($content, 0, 4) == 'http') {
                     $this->addUrl($content);
-                }
-                else
-                {
+                } else {
                     $this->addContent($content);
                 }
             }
@@ -72,9 +68,10 @@ class Scrapher {
     }
 
     /**
-     * Add URL to scrape
+     * Add URL to scrape.
      *
      * @param string $url
+     *
      * @return Scrapher
      */
     public function addUrl($url)
@@ -86,15 +83,15 @@ class Scrapher {
     }
 
     /**
-     * Add URLs to scrape
+     * Add URLs to scrape.
      *
      * @param array $urls
+     *
      * @return Scrapher
      */
     public function addUrls(array $urls)
     {
-        foreach ($urls as $url)
-        {
+        foreach ($urls as $url) {
             $this->addUrl($url);
         }
 
@@ -102,9 +99,10 @@ class Scrapher {
     }
 
     /**
-     * Add content to scrape
+     * Add content to scrape.
      *
      * @param string $content
+     *
      * @return Scrapher
      */
     public function addContent($content)
@@ -115,15 +113,15 @@ class Scrapher {
     }
 
     /**
-     * Add contents to scrape
+     * Add contents to scrape.
      *
      * @param array $contents
+     *
      * @return Scrapher
      */
     public function addContents(array $contents)
     {
-        foreach ($contents as $content)
-        {
+        foreach ($contents as $content) {
             $this->addContent($content);
         }
 
@@ -131,9 +129,10 @@ class Scrapher {
     }
 
     /**
-     * Set the type of selector to use
+     * Set the type of selector to use.
      *
      * @param Selector $selector
+     *
      * @return Scrapher
      */
     public function with(Selector $selector)
@@ -144,9 +143,10 @@ class Scrapher {
     }
 
     /**
-     * Filter the resulting matches
+     * Filter the resulting matches.
      *
-     * @param  \Closure  $filter
+     * @param \Closure $filter
+     *
      * @return Scrapher
      */
     public function filter($filter)
@@ -157,9 +157,10 @@ class Scrapher {
     }
 
     /**
-     * Take n-number of matches
+     * Take n-number of matches.
      *
      * @param int $n
+     *
      * @return Scrapher
      */
     public function take($n)
@@ -169,9 +170,10 @@ class Scrapher {
         return $this;
     }
     /**
-     * Skip n-number of matches
+     * Skip n-number of matches.
      *
      * @param int $n
+     *
      * @return Scrapher
      */
     public function skip($n)
@@ -181,11 +183,12 @@ class Scrapher {
         return $this;
     }
     /**
-     * Order the matches
+     * Order the matches.
      *
      * @param string $name
      * @param string $order
      * @param string $projection
+     *
      * @return Scrapher
      */
     public function orderBy($name, $order = 'asc', $projection = null)
@@ -197,7 +200,7 @@ class Scrapher {
     }
 
     /**
-     * Get all the matches
+     * Get all the matches.
      *
      * @return array
      */
@@ -207,7 +210,7 @@ class Scrapher {
     }
 
     /**
-     * Get the first match
+     * Get the first match.
      *
      * @return array
      */
@@ -219,7 +222,7 @@ class Scrapher {
     }
 
     /**
-     * Get the last match
+     * Get the last match.
      *
      * @return array
      */
@@ -231,7 +234,7 @@ class Scrapher {
     }
 
     /**
-     * Count the number of matches
+     * Count the number of matches.
      *
      * @return array
      */
@@ -243,7 +246,7 @@ class Scrapher {
     }
 
     /**
-     * Get detailed logs of the scraping
+     * Get detailed logs of the scraping.
      *
      * @return array
      */
@@ -253,51 +256,47 @@ class Scrapher {
     }
 
     /**
-     * The matcher
+     * The matcher.
+     *
+     * @throws SelectorNotFoundException
      *
      * @return Matcher
-     * @throws SelectorNotFoundException
      */
     protected function getMatcher()
     {
-        if ( ! $this->matcher)
-        {
-            throw new SelectorNotFoundException;
+        if (!$this->matcher) {
+            throw new SelectorNotFoundException();
         }
 
         return $this->matcher;
     }
 
     /**
-     * The actual scraping
+     * The actual scraping.
+     *
+     * @throws ContentNotFoundException
      *
      * @return array
-     * @throws ContentNotFoundException
      */
     protected function scrape()
     {
-        if ( ! $this->contents)
-        {
-            throw new ContentNotFoundException;
+        if (!$this->contents) {
+            throw new ContentNotFoundException();
         }
 
         $results = array();
 
-        foreach ($this->contents as $content)
-        {
+        foreach ($this->contents as $content) {
             $results = array_merge($results, $this->getMatcher()->getMatches($content));
         }
 
-        if ($results)
-        {
+        if ($results) {
             // Order by
-            if ($this->orderBy)
-            {
+            if ($this->orderBy) {
                 usort($results, call_user_func_array('self::makeComparer', $this->orderBy));
             }
             // Skip & Take
-            if ($this->skip > 0 || $this->take)
-            {
+            if ($this->skip > 0 || $this->take) {
                 $results = array_slice($results, $this->skip, $this->take);
             }
         }
@@ -308,7 +307,7 @@ class Scrapher {
     }
 
     /**
-     * Clear the scraping configuration
+     * Clear the scraping configuration.
      *
      * This allows us to scrape the same contents again, but with a different selector
      */
@@ -334,6 +333,7 @@ class Scrapher {
      * From stackoverflow.com : user - jon
      * http://stackoverflow.com/questions/96759/how-do-i-sort-a-multidimensional-array-in-php
      * http://stackoverflow.com/users/50079/jon
+     *
      * @return int
      */
     private static function makeComparer()
@@ -345,7 +345,8 @@ class Scrapher {
                 ? array_pad($criterion, 3, null)
                 : array($criterion, SORT_ASC, null);
         }
-        return function($first, $second) use (&$criteria) {
+
+        return function ($first, $second) use (&$criteria) {
             foreach ($criteria as $criterion) {
                 // How will we compare this round?
                 list($column, $sortOrder, $projection) = $criterion;
@@ -354,21 +355,19 @@ class Scrapher {
                 if ($projection) {
                     $lhs = call_user_func($projection, $first[$column]);
                     $rhs = call_user_func($projection, $second[$column]);
-                }
-                else {
+                } else {
                     $lhs = $first[$column];
                     $rhs = $second[$column];
                 }
                 // Do the actual comparison; do not return if equal
                 if ($lhs < $rhs) {
                     return -1 * $sortOrder;
-                }
-                else if ($lhs > $rhs) {
+                } elseif ($lhs > $rhs) {
                     return 1 * $sortOrder;
                 }
             }
+
             return 0; // tiebreakers exhausted, so $first == $second
         };
     }
-
 }
