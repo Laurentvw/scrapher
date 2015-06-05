@@ -15,7 +15,7 @@ class Page
     {
         $ch = curl_init();
 
-        $options = [
+        $options = array(
             CURLOPT_URL            => $this->url, // the URL
             CURLOPT_RETURNTRANSFER => true, // Dont output any response directly to the browser
             CURLOPT_HEADER         => false, // Dont return the header
@@ -26,7 +26,7 @@ class Page
             CURLOPT_CONNECTTIMEOUT => 15,
             CURLOPT_TIMEOUT        => 15,
             CURLOPT_MAXREDIRS      => 3,
-        ];
+        );
 
         curl_setopt_array($ch, $options);
 

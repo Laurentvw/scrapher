@@ -9,14 +9,14 @@ class Matcher
     /**
      * @var array
      */
-    protected $matches = [];
+    protected $matches = array();
 
     /**
      * Logs.
      *
      * @var array
      */
-    protected $logs = [];
+    protected $logs = array();
 
     /**
      * @var Selector
@@ -105,7 +105,7 @@ class Matcher
      */
     public function getMatches($content)
     {
-        $filteredResults = [];
+        $filteredResults = array();
 
         $this->getSelector()->setContent($content);
 
@@ -135,7 +135,7 @@ class Matcher
      */
     private function fetch(array $matchLine)
     {
-        $result = [];
+        $result = array();
 
         foreach ($this->getSelector()->getConfig() as $match) {
             // Get the match value, optionally apply a function to it

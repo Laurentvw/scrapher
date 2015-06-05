@@ -6,7 +6,7 @@ class RegexSelector extends Selector
 {
     public function getMatches()
     {
-        $matches = [];
+        $matches = array();
 
         preg_match_all($this->getExpression(), $this->getContent(), $matchLines, PREG_SET_ORDER);
 

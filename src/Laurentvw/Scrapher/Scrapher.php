@@ -13,7 +13,7 @@ class Scrapher
      *
      * @var array
      */
-    protected $contents = [];
+    protected $contents = array();
 
     /**
      * The crawler's matcher.
@@ -194,7 +194,7 @@ class Scrapher
     public function orderBy($name, $order = 'asc', $projection = null)
     {
         $order = strtolower($order) == 'desc' ? SORT_DESC : SORT_ASC;
-        $this->orderBy[] = [$name, $order, $projection];
+        $this->orderBy[] = array($name, $order, $projection);
 
         return $this;
     }
@@ -284,7 +284,7 @@ class Scrapher
             throw new ContentNotFoundException();
         }
 
-        $results = [];
+        $results = array();
 
         foreach ($this->contents as $content) {
             $results = array_merge($results, $this->getMatcher()->getMatches($content));
@@ -343,7 +343,7 @@ class Scrapher
         foreach ($criteria as $index => $criterion) {
             $criteria[$index] = is_array($criterion)
                 ? array_pad($criterion, 3, null)
-                : [$criterion, SORT_ASC, null];
+                : array($criterion, SORT_ASC, null);
         }
 
         return function ($first, $second) use (&$criteria) {
