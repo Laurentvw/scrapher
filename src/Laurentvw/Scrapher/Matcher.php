@@ -147,8 +147,8 @@ class Matcher
 
             // Validate this match
             if (isset($match['validate'])) {
-                if (!$match['validate']($matchLine[$match['name']])) {
-                    $this->addLog('Skipping match because validation failed for '.$match['name'].': '.$matchLine[$match['name']]);
+                if (!$match['validate']($result[$match['name']])) {
+                    $this->addLog('Skipping match because validation failed for '.$match['name'].': '.$result[$match['name']]);
 
                     return false;
                 }
