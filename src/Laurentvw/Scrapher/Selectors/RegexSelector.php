@@ -14,6 +14,10 @@ class RegexSelector extends Selector
 
         foreach ($matchLines as $i => $matchLine) {
             foreach ($this->getConfig() as $config) {
+                if ($config['id'] == 0) {
+                    $matches[$i][$config['name']] = $this->getSourceKey();
+                    continue;
+                }
                 if (!isset($matchLine[$config['id']])) {
                     throw new MatchIdNotFoundException($config['id']);
                 }

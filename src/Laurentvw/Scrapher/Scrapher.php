@@ -84,7 +84,7 @@ class Scrapher
     public function addUrl($url)
     {
         $page = new Page($url);
-        $this->addContent($page->getHTML());
+        $this->addContent($page->getHTML(), $url);
 
         return $this;
     }
@@ -109,12 +109,16 @@ class Scrapher
      * Add content to scrape.
      *
      * @param string $content
-     *
+     * @param null $key
      * @return Scrapher
      */
-    public function addContent($content)
+    public function addContent($content, $key = null)
     {
-        $this->contents[] = $content;
+        if (!is_null($key)) {
+            $this->contents[$key] = $content;
+        } else {
+            $this->contents[] = $content;
+        }
 
         return $this;
     }
@@ -305,8 +309,8 @@ class Scrapher
 
         $results = array();
 
-        foreach ($this->contents as $content) {
-            $results = array_merge($results, $this->getMatcher()->getMatches($content));
+        foreach ($this->contents as $id => $content) {
+            $results = array_merge($results, $this->getMatcher()->getMatches($content, $id));
         }
 
         if ($results) {
