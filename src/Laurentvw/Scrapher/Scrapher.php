@@ -44,6 +44,13 @@ class Scrapher
     protected $orderBy;
 
     /**
+     * Whether to return results in reverse order
+     *
+     * @var bool
+     */
+    protected $reverse = false;
+
+    /**
      * Create a new Scrapher instance.
      *
      * You may optionally pass the contents or URLs to scrape.
@@ -152,6 +159,18 @@ class Scrapher
     public function filter($filter)
     {
         $this->getMatcher()->setFilter($filter);
+
+        return $this;
+    }
+
+    /**
+     * Reverse the order of the resulting matches.
+     *
+     * @return Scrapher
+     */
+    public function reverse()
+    {
+        $this->reverse = true;
 
         return $this;
     }
@@ -299,6 +318,10 @@ class Scrapher
             if ($this->skip > 0 || $this->take) {
                 $results = array_slice($results, $this->skip, $this->take);
             }
+        }
+
+        if ($this->reverse) {
+            krsort($results);
         }
 
         $this->clear();
