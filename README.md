@@ -169,6 +169,9 @@ $results = $matches->orderBy('title')->orderBy('url', 'desc')->get();
 
 // Custom sorting: For values that do not lend well with sorting, e.g. dates*.
 $results = $matches->orderBy('date', 'desc', 'date_create')->get();
+
+// Simply reverse the order of the results
+$results = $matches->reverse()->get();
 ```
 * See [date_create](http://php.net/manual/en/function.date-create.php)
 
