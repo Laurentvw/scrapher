@@ -128,6 +128,8 @@ Note that the kind of value passed to the "id" key may vary depending on what se
 
 _**RegexSelector** uses <http://php.net/manual/en/function.preg-match-all.php> under the hood._
 
+For your convenience, when using Regex, a match with `'id' => 0` will return the URL of the crawled page.
+
 ### Retrieving & Sorting
 
 Once you've specified a selector using the **with** method, you can start retrieving and/or sorting the data.
@@ -188,18 +190,18 @@ $matches->filter(function($match) {
 
 ### Mutating
 
-In order to handle inconsistencies or formatting issues, you can alter the matched values to a more desirable value. Altering happens before filtering and sorting the result set. You can do so by using the `apply` index in the match configuration array with a closure that takes 1 argument: the matched value.
+In order to handle inconsistencies or formatting issues, you can alter the matched values to a more desirable value. Altering happens before filtering and sorting the result set. You can do so by using the `apply` index in the match configuration array with a closure that takes 2 arguments: the matched value and the URL of the crawled page.
 
 ```php
 $matchConfig = array(
     array(
         'name' => 'url',
         'id' => 1,
-        // Add domain to URL if it's not present already
-        'apply' => function($match) use($url)
+        // Add domain to relative URLs
+        'apply' => function($match, $sourceUrl)
         {
             if (!stristr($match, 'http')) {
-                return $url . trim($match, '/');
+                return $sourceUrl . trim($match, '/');
             }
             return $match;
         },
@@ -218,7 +220,7 @@ $matchConfig = array(
 
 ### Validation
 
-You may validate the matched data to insure that the result set always contains the desired result. Validation happens after optionally mutating the data set with `apply`. To add the validation rules that should be applied to the data, use the `validate` index in the match configuration array with a closure that takes one argument: the matched value. The closure should return `true` if the validation succeeded, and `false` if the validation failed. Matches that fail the validation will be removed from the result set.
+You may validate the matched data to insure that the result set always contains the desired result. Validation happens after optionally mutating the data set with `apply`. To add the validation rules that should be applied to the data, use the `validate` index in the match configuration array with a closure that takes 2 arguments: the matched value and the URL of the crawled page. The closure should return `true` if the validation succeeded, and `false` if the validation failed. Matches that fail the validation will be removed from the result set.
 
 ```php
 $matchConfig = array(

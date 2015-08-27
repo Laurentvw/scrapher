@@ -4,7 +4,7 @@ namespace Laurentvw\Scrapher\Selectors;
 
 abstract class Selector
 {
-    private $content, $expression, $config;
+    private $content, $sourceKey, $expression, $config;
 
     public function __construct($expression, $config)
     {
@@ -20,6 +20,16 @@ abstract class Selector
     public function getContent()
     {
         return $this->content;
+    }
+
+    public function setSourceKey($key)
+    {
+        $this->sourceKey = $key;
+    }
+
+    public function getSourceKey()
+    {
+        return $this->sourceKey;
     }
 
     public function setConfig($config)

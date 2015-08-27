@@ -101,13 +101,15 @@ class Matcher
     /**
      * @param $content
      *
+     * @param $sourceKey
      * @return array
      */
-    public function getMatches($content)
+    public function getMatches($content, $sourceKey)
     {
         $filteredResults = array();
 
         $this->getSelector()->setContent($content);
+        $this->getSelector()->setSourceKey($sourceKey);
 
         $matches = $this->getSelector()->getMatches();
 
@@ -140,14 +142,14 @@ class Matcher
         foreach ($this->getSelector()->getConfig() as $match) {
             // Get the match value, optionally apply a function to it
             if (isset($match['apply'])) {
-                $result[$match['name']] = $match['apply']($matchLine[$match['name']]);
+                $result[$match['name']] = $match['apply']($matchLine[$match['name']], $this->getSelector()->getSourceKey());
             } else {
                 $result[$match['name']] = $matchLine[$match['name']];
             }
 
             // Validate this match
             if (isset($match['validate'])) {
-                if (!$match['validate']($result[$match['name']])) {
+                if (!$match['validate']($result[$match['name']], $this->getSelector()->getSourceKey())) {
                     $this->addLog('Skipping match because validation failed for '.$match['name'].': '.$result[$match['name']]);
 
                     return false;
