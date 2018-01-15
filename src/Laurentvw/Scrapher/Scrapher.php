@@ -192,6 +192,7 @@ class Scrapher
 
         return $this;
     }
+
     /**
      * Skip n-number of matches.
      *
@@ -205,6 +206,7 @@ class Scrapher
 
         return $this;
     }
+
     /**
      * Order the matches.
      *
@@ -225,21 +227,29 @@ class Scrapher
     /**
      * Get all the matches.
      *
+     * @param  array   $columns
+     *
      * @return array
      */
-    public function get()
+    public function get($columns = array('*'))
     {
-        return $this->scrape();
+        $columns = is_array($columns) ? $columns : func_get_args();
+
+        return $this->scrape($columns);
     }
 
     /**
      * Get the first match.
      *
+     * @param  array   $columns
+     *
      * @return array
      */
-    public function first()
+    public function first($columns = array('*'))
     {
-        $results = $this->scrape();
+        $columns = is_array($columns) ? $columns : func_get_args();
+
+        $results = $this->scrape($columns);
 
         return current($results);
     }
@@ -247,11 +257,15 @@ class Scrapher
     /**
      * Get the last match.
      *
+     * @param  array   $columns
+     *
      * @return array
      */
-    public function last()
+    public function last($columns = array('*'))
     {
-        $results = $this->scrape();
+        $columns = is_array($columns) ? $columns : func_get_args();
+
+        $results = $this->scrape($columns);
 
         return end($results);
     }
@@ -263,7 +277,7 @@ class Scrapher
      */
     public function count()
     {
-        $results = $this->scrape();
+        $results = $this->scrape(array('*'));
 
         return count($results);
     }
@@ -297,11 +311,12 @@ class Scrapher
     /**
      * The actual scraping.
      *
+     * @param array $columns
      * @throws ContentNotFoundException
      *
      * @return array
      */
-    protected function scrape()
+    protected function scrape($columns)
     {
         if (!$this->contents) {
             throw new ContentNotFoundException();
@@ -321,6 +336,12 @@ class Scrapher
             // Skip & Take
             if ($this->skip > 0 || $this->take) {
                 $results = array_slice($results, $this->skip, $this->take);
+            }
+            // Select columns
+            if (!in_array('*', $columns)) {
+                $results = array_map(function ($v) use($columns) {
+                    return array_intersect_key($v, array_flip($columns));
+                }, $results);
             }
         }
 
