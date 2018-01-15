@@ -139,6 +139,9 @@ Once you've specified a selector using the **with** method, you can start retrie
 // Return all matches
 $results = $matches->get();
 
+// Return all matches with a subset of the data (either use multiple arguments or an array for more than one column)
+$results = $matches->get('title');
+
 // Return the first match
 $result = $matches->first();
 
