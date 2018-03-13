@@ -2,8 +2,6 @@
 
 namespace Laurentvw\Scrapher\Selectors;
 
-use Laurentvw\Scrapher\Exceptions\MatchIdNotFoundException;
-
 class RegexSelector extends Selector
 {
     public function getMatches()
@@ -19,9 +17,10 @@ class RegexSelector extends Selector
                     continue;
                 }
                 if (!isset($matchLine[$config['id']])) {
-                    throw new MatchIdNotFoundException($config['id']);
+                    $matches[$i][$config['name']] = null;
+                } else {
+                    $matches[$i][$config['name']] = $matchLine[$config['id']];
                 }
-                $matches[$i][$config['name']] = $matchLine[$config['id']];
             }
         }
 
