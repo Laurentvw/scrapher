@@ -114,7 +114,7 @@ class Matcher
         $matches = $this->getSelector()->getMatches();
 
         if ($matches) {
-            foreach ($this->getSelector()->getMatches() as $matchLine) {
+            foreach ($matches as $matchLine) {
                 $filteredResult = $this->fetch($matchLine);
 
                 if ($filteredResult) {
